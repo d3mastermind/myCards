@@ -1,4 +1,4 @@
-final List<Map<String, dynamic>> templates = [
+final List<Map<String, dynamic>> templateData = [
   {
     "id": "templateId1",
     "name": "Happy Birthday Card",

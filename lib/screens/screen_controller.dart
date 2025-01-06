@@ -10,11 +10,11 @@ class ScreenController extends StatefulWidget {
   const ScreenController({super.key});
 
   @override
-  _ScreenControllerState createState() => _ScreenControllerState();
+  ScreenControllerState createState() => ScreenControllerState();
 }
 
-class _ScreenControllerState extends State<ScreenController> {
-  int currentIndex = 3;
+class ScreenControllerState extends State<ScreenController> {
+  int currentIndex = 2;
 
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
 
@@ -32,16 +32,29 @@ class _ScreenControllerState extends State<ScreenController> {
       body: screens[currentIndex],
       bottomNavigationBar: CurvedNavigationBar(
         key: _bottomNavigationKey,
+        index: currentIndex,
         color: Colors.red,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         buttonBackgroundColor: Colors.redAccent,
         height: 60,
         items: <Widget>[
-          Icon(Icons.category, size: 30, color: Colors.white),
-          Icon(Icons.card_membership, size: 30, color: Colors.white),
+          Image.asset(
+            "assets/icons/category_icon.png",
+            height: 30,
+          ),
+          Image.asset(
+            "assets/icons/cards_icon.png",
+            height: 30,
+          ),
           Icon(Icons.home, size: 30, color: Colors.white),
-          Icon(Icons.account_circle, size: 30, color: Colors.white),
-          Icon(Icons.credit_card, size: 30, color: Colors.white),
+          Image.asset(
+            "assets/icons/accounts_icon.png",
+            height: 30,
+          ),
+          Image.asset(
+            "assets/icons/credits_icon.png",
+            height: 30,
+          ),
         ],
         onTap: (index) {
           setState(() {

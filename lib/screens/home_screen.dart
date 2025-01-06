@@ -3,14 +3,24 @@ import 'package:mycards/widgets/card_template.dart';
 import 'package:mycards/widgets/category_item.dart';
 import 'package:mycards/data/template_data.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final List<Map<String, dynamic>> templates = templateData;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        scrolledUnderElevation: 0,
         elevation: 0,
+        backgroundColor: Colors.white,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Image.asset('assets/images/logo.png'),
