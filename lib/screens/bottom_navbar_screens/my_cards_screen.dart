@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mycards/data/template_data.dart';
 import 'package:mycards/widgets/build_card_row.dart';
-import 'package:mycards/widgets/card_template.dart';
 
 class MyCardsScreen extends StatefulWidget {
   const MyCardsScreen({super.key});

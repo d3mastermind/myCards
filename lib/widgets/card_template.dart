@@ -16,8 +16,8 @@ class TemplateCard extends StatelessWidget {
       },
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: SizedBox(
-          height: 300,
+        child: Container(
+          height: 280,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -30,7 +30,7 @@ class TemplateCard extends StatelessWidget {
                     BoxShadow(
                       color: Colors.grey.withAlpha(70),
                       blurRadius: 8,
-                      offset: Offset(0, 4),
+                      offset: Offset(10, -10),
                     ),
                   ],
                 ),

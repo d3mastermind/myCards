@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mycards/data/category_list.dart';
+import 'package:mycards/data/template_data.dart';
+import 'package:mycards/widgets/template_grid_view.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -26,10 +28,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         elevation: 0,
         title: Text(
           'All Categories',
-          style: Theme.of(context)
-              .textTheme
-              .displaySmall!
-              .copyWith(color: Colors.black),
+          style: Theme.of(context).textTheme.headlineMedium,
         ),
         backgroundColor: Colors.white,
         centerTitle: true,
@@ -73,15 +72,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         style: Theme.of(context).textTheme.titleLarge),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
-                      // Define the action for tapping a tile
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => CategoryDetailsScreen(
-                      //       categoryName: category['title'],
-                      //     ),
-                      //   ),
-                      // );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TemplateGridScreen(
+                              appBarTitle: "${category['title']}",
+                              templates: templateData),
+                        ),
+                      );
                     },
                   );
                 },

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:mycards/screens/account_screen.dart';
-import 'package:mycards/screens/categories_screen.dart';
-import 'package:mycards/screens/credits_screens.dart';
-import 'package:mycards/screens/home_screen.dart';
-import 'package:mycards/screens/my_cards_screen.dart';
+import 'package:mycards/screens/bottom_navbar_screens/account_screen.dart';
+import 'package:mycards/screens/bottom_navbar_screens/categories_screen.dart';
+import 'package:mycards/screens/bottom_navbar_screens/credits_screens.dart';
+import 'package:mycards/screens/bottom_navbar_screens/home_screen.dart';
+import 'package:mycards/screens/bottom_navbar_screens/my_cards_screen.dart';
 
 class ScreenController extends StatefulWidget {
   const ScreenController({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mycards/auth/auth_screens/phone_signup_view.dart';
+//import 'package:mycards/auth/auth_screens/phone_signup_view.dart';
 import 'package:flutter/services.dart';
-import 'package:mycards/screens/home_screen.dart';
+//import 'package:mycards/screens/home_screen.dart';
 import 'package:mycards/screens/screen_controller.dart';
 
 void main() {
