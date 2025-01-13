@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 //import 'package:mycards/auth/auth_screens/phone_signup_view.dart';
 import 'package:flutter/services.dart';
+import 'package:mycards/data/template_data.dart';
+import 'package:mycards/screens/bottom_navbar_screens/home_screen.dart';
+import 'package:mycards/screens/flip_screens/card_page_view.dart';
 //import 'package:mycards/screens/home_screen.dart';
 import 'package:mycards/screens/screen_controller.dart';
 

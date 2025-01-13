@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mycards/screens/card_preview_page.dart';
 
-class TemplateCard extends StatelessWidget {
+class TemplateCard extends StatefulWidget {
   const TemplateCard({
     super.key,
     required this.template,
@@ -9,21 +10,31 @@ class TemplateCard extends StatelessWidget {
   final Map<String, dynamic> template;
 
   @override
+  State<TemplateCard> createState() => _TemplateCardState();
+}
+
+class _TemplateCardState extends State<TemplateCard> {
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        print("Tapped on template ${template["id"]}");
+        print("Tapped on template ${widget.template["id"]}");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => CardPreviewPage(template: widget.template)),
+        );
       },
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Container(
-          height: 280,
+          //height: 280,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Card with shadow, image, and icons
               Container(
-                height: 250, // Fixed height for the image area
+                width: 250, // Fixed height for the image area
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
@@ -40,12 +51,12 @@ class TemplateCard extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.asset(
-                        "assets/images/1.jpg",
+                        widget.template["frontCoverImageUrl"],
                         fit: BoxFit.cover,
                       ),
                     ),
                     // Premium icon
-                    if (template["isPremium"])
+                    if (widget.template["isPremium"])
                       Positioned(
                         top: 8,
                         right: 8,
@@ -79,7 +90,7 @@ class TemplateCard extends StatelessWidget {
               // Template name below the image
               SizedBox(height: 8),
               Text(
-                template["name"],
+                widget.template["name"],
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
