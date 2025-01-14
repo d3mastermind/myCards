@@ -40,9 +40,9 @@ class TemplateGridScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 16),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.6, // Adjust as per your design
+                  crossAxisSpacing: 0,
+                  mainAxisSpacing: 0,
+                  childAspectRatio: 0.5, // Adjust as per your design
                 ),
                 itemCount: templates.length,
                 itemBuilder: (context, index) {

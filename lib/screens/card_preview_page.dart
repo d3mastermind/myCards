@@ -25,7 +25,12 @@ class CardPreviewPage extends StatelessWidget {
             const SizedBox(height: 8),
             // Card preview using CardPageView
             Expanded(
-              child: CardPageView(template: template,includeLastPage: false,),
+              child: Container(
+                  width: 350,
+                  child: CardPageView(
+                    template: template,
+                    includeLastPage: false,
+                  )),
             ),
             // Bottom section with card name, price, and purchase button
             Padding(

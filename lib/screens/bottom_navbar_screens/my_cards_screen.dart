@@ -26,25 +26,24 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8.0,
+        ),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildCardRow(
-                context,
+              CardRow(
                 title: 'Favorites',
                 templates: templates,
               ),
               const SizedBox(height: 16),
-              buildCardRow(
-                context,
+              CardRow(
                 title: 'Purchased',
                 templates: templates,
               ),
               const SizedBox(height: 16),
-              buildCardRow(
-                context,
+              CardRow(
                 title: 'Received',
                 templates: templates,
               ),

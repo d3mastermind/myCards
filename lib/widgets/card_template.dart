@@ -28,13 +28,14 @@ class _TemplateCardState extends State<TemplateCard> {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Container(
-          //height: 280,
+          height: 350,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Card with shadow, image, and icons
               Container(
-                width: 250, // Fixed height for the image area
+                //width: 250,
+                height: 300,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
@@ -53,6 +54,8 @@ class _TemplateCardState extends State<TemplateCard> {
                       child: Image.asset(
                         widget.template["frontCoverImageUrl"],
                         fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
                       ),
                     ),
                     // Premium icon
