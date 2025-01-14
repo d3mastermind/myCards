@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:mycards/screens/flip_screens/custom_text_view.dart';
-import 'package:mycards/screens/flip_screens/front_cover.dart';
-import 'package:mycards/screens/flip_screens/image_upload_view.dart';
-import 'package:mycards/screens/flip_screens/share_card_view.dart';
-import 'package:mycards/screens/flip_screens/voice_message_view.dart';
+import 'package:mycards/screens/card_screens/front_cover.dart';
+import 'package:mycards/screens/card_screens/share_card_view.dart';
+import 'package:mycards/screens/preview_card_screens/preview_card_credits.dart';
+import 'package:mycards/screens/preview_card_screens/preview_custom_text_view.dart';
+import 'package:mycards/screens/preview_card_screens/preview_image_upload.dart';
+import 'package:mycards/screens/preview_card_screens/preview_voice_messag.dart';
 
-class CardPageView extends StatefulWidget {
-  const CardPageView(
+class PreviewCardPageView extends StatefulWidget {
+  const PreviewCardPageView(
       {super.key, required this.template, required this.includeLastPage});
   final Map<String, dynamic> template;
   final bool includeLastPage;
 
   @override
-  State<CardPageView> createState() => _CardPageViewState();
+  State<PreviewCardPageView> createState() => _PreviewCardPageViewState();
 }
 
-class _CardPageViewState extends State<CardPageView> {
+class _PreviewCardPageViewState extends State<PreviewCardPageView> {
   late final PageController _pageController;
   int _currentPage = 0;
 
@@ -34,35 +35,22 @@ class _CardPageViewState extends State<CardPageView> {
   @override
   Widget build(BuildContext context) {
     final String frontCoverImageUrl = widget.template["frontCoverImageUrl"];
-    final String toMessage = widget.template["defaultCardData"]["toMessage"];
-    final String fromMessage =
-        widget.template["defaultCardData"]["fromMessage"];
-    final String customMessage =
-        widget.template["defaultCardData"]["customMessage"];
-    final String? customImageUrl =
-        widget.template["defaultCardData"]["customImageUrl"];
+
     final String? customAudioUrl =
         widget.template["defaultCardData"]["customAudioUrl"];
-    final screenSize = MediaQuery.of(context).size;
 
     final pages = [
       FrontCoverView(
         image: frontCoverImageUrl,
       ),
-      CustomTextView(
-        toMessage: toMessage,
-        fromMeassage: fromMessage,
-        customMessage: customMessage,
-        bgImageUrl: frontCoverImageUrl,
-      ),
-      ImageUploadView(
-        customImageUrl: customImageUrl ?? "assets/images/defaultImage.jpg",
-      ),
-      VoiceMessageView(
+      PreviewCustomTextView(bgImageUrl: frontCoverImageUrl),
+      PreviewImageUploadView(),
+      PreviewVoiceMessageView(
         audioUrl: customAudioUrl ?? "audio/defaultaudio.mp3",
         bgImageUrl: frontCoverImageUrl,
       ),
       if (widget.includeLastPage) ShareCardView(),
+      PreviewCardCreditsCelebrationScreen()
     ];
 
     return Scaffold(

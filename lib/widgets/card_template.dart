@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mycards/screens/card_preview_page.dart';
+import 'package:mycards/screens/preview_card_screens/card_preview_page.dart';
 
 class TemplateCard extends StatefulWidget {
   const TemplateCard({

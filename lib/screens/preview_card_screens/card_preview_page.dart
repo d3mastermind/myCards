@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mycards/screens/flip_screens/card_page_view.dart';
+import 'package:mycards/screens/preview_card_screens/preview_card_screen_controller.dart';
 
 class CardPreviewPage extends StatelessWidget {
   final Map<String, dynamic> template;
@@ -25,9 +25,9 @@ class CardPreviewPage extends StatelessWidget {
             const SizedBox(height: 8),
             // Card preview using CardPageView
             Expanded(
-              child: Container(
+              child: SizedBox(
                   width: 350,
-                  child: CardPageView(
+                  child: PreviewCardPageView(
                     template: template,
                     includeLastPage: false,
                   )),
