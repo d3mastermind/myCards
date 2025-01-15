@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class PreviewCardCreditsCelebrationScreen extends StatelessWidget {
-  const PreviewCardCreditsCelebrationScreen({
+class PreEdit5thPage extends StatelessWidget {
+  const PreEdit5thPage({
     super.key,
   });
 

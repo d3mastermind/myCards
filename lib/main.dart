@@ -4,8 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:mycards/data/template_data.dart';
 import 'package:mycards/screens/bottom_navbar_screens/home_screen.dart';
 import 'package:mycards/screens/card_screens/card_page_view.dart';
+import 'package:mycards/screens/pre_edit_card_screens/pre_edit_card_preview_page.dart';
+import 'package:mycards/screens/pre_edit_card_screens/pre_edit_card_page_view.dart';
 //import 'package:mycards/screens/home_screen.dart';
-import 'package:mycards/screens/screen_controller.dart';
+import 'package:mycards/screens/bottom_navbar_controller.dart';
 
 void main() {
   runApp(const MyApp());
@@ -78,7 +80,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: ScreenController(),
+      home: BottomNavBarController(),
     );
   }
 }

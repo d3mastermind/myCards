@@ -3,8 +3,8 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 
-class PreviewCustomTextView extends StatelessWidget {
-  const PreviewCustomTextView({
+class PreEdit2ndPage extends StatelessWidget {
+  const PreEdit2ndPage({
     super.key,
     required this.bgImageUrl,
   });

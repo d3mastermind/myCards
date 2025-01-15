@@ -3,8 +3,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
-class PreviewVoiceMessageView extends StatefulWidget {
-  const PreviewVoiceMessageView({
+class PreEdit4thPage extends StatefulWidget {
+  const PreEdit4thPage({
     super.key,
     required this.audioUrl,
     required this.bgImageUrl,
@@ -14,11 +14,10 @@ class PreviewVoiceMessageView extends StatefulWidget {
   final String bgImageUrl;
 
   @override
-  State<PreviewVoiceMessageView> createState() =>
-      _PreviewVoiceMessageViewState();
+  State<PreEdit4thPage> createState() => _PreEdit4thPageState();
 }
 
-class _PreviewVoiceMessageViewState extends State<PreviewVoiceMessageView> {
+class _PreEdit4thPageState extends State<PreEdit4thPage> {
   late final AudioPlayer _audioPlayer;
   bool isPlaying = false;
 

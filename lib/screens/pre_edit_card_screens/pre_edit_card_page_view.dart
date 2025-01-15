@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:mycards/screens/card_screens/front_cover.dart';
+import 'package:mycards/screens/card_screens/received_credit.dart';
 import 'package:mycards/screens/card_screens/share_card_view.dart';
-import 'package:mycards/screens/preview_card_screens/preview_card_credits.dart';
-import 'package:mycards/screens/preview_card_screens/preview_custom_text_view.dart';
-import 'package:mycards/screens/preview_card_screens/preview_image_upload.dart';
-import 'package:mycards/screens/preview_card_screens/preview_voice_messag.dart';
+import 'package:mycards/screens/edit_screens/send_card_credits.dart';
+import 'package:mycards/screens/pre_edit_card_screens/pre_edit_5th_page.dart';
+import 'package:mycards/screens/pre_edit_card_screens/pre_edit_2nd_page.dart';
+import 'package:mycards/screens/pre_edit_card_screens/pre_edit_3rd_page.dart';
+import 'package:mycards/screens/pre_edit_card_screens/pre_edit_4th_page.dart';
 
-class PreviewCardPageView extends StatefulWidget {
-  const PreviewCardPageView(
+class PreEditCardPageView extends StatefulWidget {
+  const PreEditCardPageView(
       {super.key, required this.template, required this.includeLastPage});
   final Map<String, dynamic> template;
   final bool includeLastPage;
 
   @override
-  State<PreviewCardPageView> createState() => _PreviewCardPageViewState();
+  State<PreEditCardPageView> createState() => _PreEditCardPageViewState();
 }
 
-class _PreviewCardPageViewState extends State<PreviewCardPageView> {
+class _PreEditCardPageViewState extends State<PreEditCardPageView> {
   late final PageController _pageController;
   int _currentPage = 0;
 
@@ -43,14 +45,16 @@ class _PreviewCardPageViewState extends State<PreviewCardPageView> {
       FrontCoverView(
         image: frontCoverImageUrl,
       ),
-      PreviewCustomTextView(bgImageUrl: frontCoverImageUrl),
-      PreviewImageUploadView(),
-      PreviewVoiceMessageView(
+      PreEdit2ndPage(bgImageUrl: frontCoverImageUrl),
+      PreEdit3rdPage(),
+      PreEdit4thPage(
         audioUrl: customAudioUrl ?? "audio/defaultaudio.mp3",
         bgImageUrl: frontCoverImageUrl,
       ),
       if (widget.includeLastPage) ShareCardView(),
-      PreviewCardCreditsCelebrationScreen()
+      PreEdit5thPage(),
+      SendCardCreditsScreen(currentBalance: 1234),
+      ReceivedCreditsScreen(receivedCredits: 500)
     ];
 
     return Scaffold(

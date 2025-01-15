@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mycards/screens/edit_screens/edit_card_screen.dart';
-import 'package:mycards/screens/preview_card_screens/preview_card_screen_controller.dart';
+import 'package:mycards/screens/pre_edit_card_screens/pre_edit_card_page_view.dart';
 
-class CardPreviewPage extends StatelessWidget {
+class PreEditCardPreviewPage extends StatelessWidget {
   final Map<String, dynamic> template;
 
-  const CardPreviewPage({super.key, required this.template});
+  const PreEditCardPreviewPage({super.key, required this.template});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class CardPreviewPage extends StatelessWidget {
             Expanded(
               child: SizedBox(
                   width: 350,
-                  child: PreviewCardPageView(
+                  child: PreEditCardPageView(
                     template: template,
                     includeLastPage: false,
                   )),

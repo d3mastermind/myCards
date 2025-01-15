@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mycards/screens/card_screens/custom_text_view.dart';
 import 'package:mycards/screens/card_screens/front_cover.dart';
 import 'package:mycards/screens/card_screens/image_upload_view.dart';
-import 'package:mycards/screens/card_screens/received_card_credit.dart';
+import 'package:mycards/screens/card_screens/received_credit.dart';
 import 'package:mycards/screens/card_screens/share_card_view.dart';
 import 'package:mycards/screens/card_screens/voice_message_view.dart';
 
@@ -63,7 +63,7 @@ class _CardPageViewState extends State<CardPageView> {
         bgImageUrl: frontCoverImageUrl,
       ),
       if (widget.includeLastPage) ShareCardView(),
-      CardCreditsCelebrationScreen(receivedCredits: 900)
+      ReceivedCreditsScreen(receivedCredits: 900)
     ];
 
     return Scaffold(

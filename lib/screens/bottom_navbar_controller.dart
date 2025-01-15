@@ -6,14 +6,14 @@ import 'package:mycards/screens/bottom_navbar_screens/credits_screens.dart';
 import 'package:mycards/screens/bottom_navbar_screens/home_screen.dart';
 import 'package:mycards/screens/bottom_navbar_screens/my_cards_screen.dart';
 
-class ScreenController extends StatefulWidget {
-  const ScreenController({super.key});
+class BottomNavBarController extends StatefulWidget {
+  const BottomNavBarController({super.key});
 
   @override
-  ScreenControllerState createState() => ScreenControllerState();
+  BottomNavBarControllerState createState() => BottomNavBarControllerState();
 }
 
-class ScreenControllerState extends State<ScreenController> {
+class BottomNavBarControllerState extends State<BottomNavBarController> {
   int currentIndex = 2;
 
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mycards/screens/preview_card_screens/card_preview_page.dart';
+import 'package:mycards/screens/pre_edit_card_screens/pre_edit_card_preview_page.dart';
 
 class TemplateCard extends StatefulWidget {
   const TemplateCard({
@@ -22,7 +22,8 @@ class _TemplateCardState extends State<TemplateCard> {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => CardPreviewPage(template: widget.template)),
+              builder: (context) =>
+                  PreEditCardPreviewPage(template: widget.template)),
         );
       },
       child: Padding(

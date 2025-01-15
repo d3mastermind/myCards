@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class PreviewImageUploadView extends StatelessWidget {
-  const PreviewImageUploadView({super.key});
+class PreEdit3rdPage extends StatelessWidget {
+  const PreEdit3rdPage({super.key});
 
   @override
   Widget build(BuildContext context) {

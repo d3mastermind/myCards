@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class CardCreditsCelebrationScreen extends StatelessWidget {
+class ReceivedCreditsScreen extends StatelessWidget {
   final int receivedCredits;
 
-  const CardCreditsCelebrationScreen({
+  const ReceivedCreditsScreen({
     super.key,
     required this.receivedCredits,
   });
