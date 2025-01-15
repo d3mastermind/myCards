@@ -63,6 +63,7 @@ class _SendCardCreditsScreenState extends State<SendCardCreditsScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 8),
             const Text(
@@ -85,7 +86,7 @@ class _SendCardCreditsScreenState extends State<SendCardCreditsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Your Credits: ${widget.currentBalance}",
+                      "Your Credits Balance: ${widget.currentBalance}",
                       style: const TextStyle(
                           fontSize: 16, fontWeight: FontWeight.bold),
                     ),
@@ -178,7 +179,7 @@ class _SendCardCreditsScreenState extends State<SendCardCreditsScreen> {
                           Navigator.pop(context);
                         }
                       : null,
-                  child: const Text("Continue"),
+                  child: const Text("Finish and Preview"),
                 ),
               ],
             ),

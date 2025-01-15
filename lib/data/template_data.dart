@@ -5,7 +5,7 @@ final List<Map<String, dynamic>> templateData = [
     "category": "Birthday",
     "isPremium": true,
     "priceInCredits": 50,
-    "frontCoverImageUrl": "assets/images/3.jpg",
+    "frontCoverImageUrl": "assets/images/1.jpg",
     "frameImageUrl": "https://example.com/images/birthday_frame.png",
     "defaultCardData": {
       "toMessage": "To [Recipient]",
@@ -38,7 +38,7 @@ final List<Map<String, dynamic>> templateData = [
     "category": "Ramadan",
     "isPremium": false,
     "priceInCredits": 0,
-    "frontCoverImageUrl": "assets/images/3.jpg",
+    "frontCoverImageUrl": "assets/images/2.jpg",
     "frameImageUrl": "https://example.com/images/ramadan_frame.png",
     "defaultCardData": {
       "toMessage": "To [Recipient]",
@@ -70,7 +70,7 @@ final List<Map<String, dynamic>> templateData = [
     "category": "Birthday",
     "isPremium": true,
     "priceInCredits": 50,
-    "frontCoverImageUrl": "assets/images/3.jpg",
+    "frontCoverImageUrl": "assets/images/1.jpg",
     "frameImageUrl": "https://example.com/images/birthday_frame.png",
     "defaultCardData": {
       "toMessage": "To [Recipient]",
@@ -86,7 +86,7 @@ final List<Map<String, dynamic>> templateData = [
     "category": "Birthday",
     "isPremium": false,
     "priceInCredits": 50,
-    "frontCoverImageUrl": "assets/images/3.jpg",
+    "frontCoverImageUrl": "assets/images/2.jpg",
     "frameImageUrl": "https://example.com/images/birthday_frame.png",
     "defaultCardData": {
       "toMessage": "To [Recipient]",

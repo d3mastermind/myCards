@@ -86,7 +86,7 @@ class PreviewCustomTextView extends StatelessWidget {
                             log("Edit message tapped");
                           },
                           style: TextButton.styleFrom(
-                            backgroundColor: Colors.blue,
+                            backgroundColor: Colors.orange,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24,

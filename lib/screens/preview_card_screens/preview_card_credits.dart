@@ -8,6 +8,7 @@ class PreviewCardCreditsCelebrationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white.withAlpha(200),
       appBar: AppBar(
         centerTitle: true,
         title: const Text(
@@ -50,14 +51,14 @@ class PreviewCardCreditsCelebrationScreen extends StatelessWidget {
                 fontSize: 16,
                 color: Colors.black87,
               ),
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.justify,
             ),
             const SizedBox(height: 20),
             // Decorative Celebration Animation/Graphics Placeholder
             Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: Colors.black.withAlpha(70),
+                color: Colors.black.withAlpha(100),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -70,12 +71,13 @@ class PreviewCardCreditsCelebrationScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "Suprise your receipent and Attach credits to your card to make it even more rewarding!",
+                    "Suprise your Recipient and Attach credits to your card to make it even more rewarding!",
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
+                    textAlign: TextAlign.justify,
                   ),
                 ],
               ),

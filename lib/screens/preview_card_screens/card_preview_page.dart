@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mycards/screens/edit_screens/edit_card_screen.dart';
 import 'package:mycards/screens/preview_card_screens/preview_card_screen_controller.dart';
 
 class CardPreviewPage extends StatelessWidget {
@@ -10,18 +11,24 @@ class CardPreviewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          "Card Preview",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 16),
-            const Text(
-              "Card Preview",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            //const SizedBox(height: 16),
+
             const SizedBox(height: 8),
             // Card preview using CardPageView
             Expanded(
@@ -57,7 +64,11 @@ class CardPreviewPage extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Add purchase functionality
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MyTabBar(),
+                            ));
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.yellow,

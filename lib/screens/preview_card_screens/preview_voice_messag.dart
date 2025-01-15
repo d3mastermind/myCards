@@ -97,14 +97,15 @@ class _PreviewVoiceMessageViewState extends State<PreviewVoiceMessageView> {
                     icon: Icon(
                       Icons.mic,
                       color: Colors.white,
+                      size: 30,
                     ),
                     label: Text(
                       "Record Voice Message",
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor:
-                          Colors.orange.shade600, // Customize color
+                          Colors.black.withAlpha(100), // Customize color
                       padding:
                           EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                     ),
