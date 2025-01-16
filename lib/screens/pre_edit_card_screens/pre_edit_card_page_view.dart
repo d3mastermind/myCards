@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mycards/screens/card_screens/front_cover.dart';
-import 'package:mycards/screens/card_screens/received_credit.dart';
 import 'package:mycards/screens/card_screens/share_card_view.dart';
-import 'package:mycards/screens/edit_screens/send_card_credits.dart';
 import 'package:mycards/screens/pre_edit_card_screens/pre_edit_5th_page.dart';
 import 'package:mycards/screens/pre_edit_card_screens/pre_edit_2nd_page.dart';
 import 'package:mycards/screens/pre_edit_card_screens/pre_edit_3rd_page.dart';
@@ -36,10 +34,7 @@ class _PreEditCardPageViewState extends State<PreEditCardPageView> {
 
   @override
   Widget build(BuildContext context) {
-    final String frontCoverImageUrl = widget.template["frontCoverImageUrl"];
-
-    final String? customAudioUrl =
-        widget.template["defaultCardData"]["customAudioUrl"];
+    final String frontCoverImageUrl = widget.template["frontCover"];
 
     final pages = [
       FrontCoverView(
@@ -48,13 +43,11 @@ class _PreEditCardPageViewState extends State<PreEditCardPageView> {
       PreEdit2ndPage(bgImageUrl: frontCoverImageUrl),
       PreEdit3rdPage(),
       PreEdit4thPage(
-        audioUrl: customAudioUrl ?? "audio/defaultaudio.mp3",
+        audioUrl: "audio/defaultaudio.mp3",
         bgImageUrl: frontCoverImageUrl,
       ),
       if (widget.includeLastPage) ShareCardView(),
       PreEdit5thPage(),
-      SendCardCreditsScreen(currentBalance: 1234),
-      ReceivedCreditsScreen(receivedCredits: 500)
     ];
 
     return Scaffold(

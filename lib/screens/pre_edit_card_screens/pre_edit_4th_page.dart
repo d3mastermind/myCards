@@ -68,23 +68,25 @@ class _PreEdit4thPageState extends State<PreEdit4thPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Play/Pause Button
-                  Row(
-                    children: [
-                      IconButton(
-                        iconSize: 80,
-                        icon: Icon(
-                          isPlaying ? Icons.pause_circle : Icons.play_circle,
-                          color: Colors.orange,
+                  Center(
+                    child: Row(
+                      children: [
+                        IconButton(
+                          iconSize: 80,
+                          icon: Icon(
+                            isPlaying ? Icons.pause_circle : Icons.play_circle,
+                            color: Colors.orange,
+                          ),
+                          onPressed: _playAudio,
                         ),
-                        onPressed: _playAudio,
-                      ),
-                      // Soundwave Animation
-                      Lottie.asset(
-                        "assets/animations/soundwave.json",
-                        repeat: true,
-                        animate: isPlaying,
-                      ),
-                    ],
+                        // Soundwave Animation
+                        Lottie.asset(
+                          "assets/animations/soundwave.json",
+                          repeat: true,
+                          animate: isPlaying,
+                        ),
+                      ],
+                    ),
                   ),
 
                   SizedBox(height: 20),

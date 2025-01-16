@@ -45,7 +45,7 @@ class PreEditCardPreviewPage extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    template["cardName"] ?? "Generic Card Name",
+                    template["name"] ?? "Generic Card Name",
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -53,7 +53,7 @@ class PreEditCardPreviewPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "Price: ${template["price"] ?? "50"} credits",
+                    "Price: ${template["price"] ?? "0"} credits",
                     style: const TextStyle(
                       fontSize: 16,
                       color: Colors.black54,
@@ -67,7 +67,7 @@ class PreEditCardPreviewPage extends StatelessWidget {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => MyTabBar(),
+                              builder: (context) => EditCardPage(),
                             ));
                       },
                       style: ElevatedButton.styleFrom(

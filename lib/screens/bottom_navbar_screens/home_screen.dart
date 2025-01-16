@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: templates.length,
                 itemBuilder: (context, index) {
                   final template = templates[index];
-                  return TemplateCard(template: template);
+                  return CardTemplate(template: template);
                 },
               ),
             ],

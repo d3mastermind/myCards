@@ -80,7 +80,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: BottomNavBarController(),
+      home: ScreenController(),
     );
   }
 }

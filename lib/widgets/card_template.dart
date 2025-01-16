@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mycards/screens/pre_edit_card_screens/pre_edit_card_preview_page.dart';
 
-class TemplateCard extends StatefulWidget {
-  const TemplateCard({
+class CardTemplate extends StatefulWidget {
+  const CardTemplate({
     super.key,
     required this.template,
   });
@@ -10,15 +10,15 @@ class TemplateCard extends StatefulWidget {
   final Map<String, dynamic> template;
 
   @override
-  State<TemplateCard> createState() => _TemplateCardState();
+  State<CardTemplate> createState() => _CardTemplateState();
 }
 
-class _TemplateCardState extends State<TemplateCard> {
+class _CardTemplateState extends State<CardTemplate> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        print("Tapped on template ${widget.template["id"]}");
+        print("Tapped on template ${widget.template["templateId"]}");
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -53,14 +53,14 @@ class _TemplateCardState extends State<TemplateCard> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.asset(
-                        widget.template["frontCoverImageUrl"],
+                        widget.template["frontCover"],
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
                       ),
                     ),
                     // Premium icon
-                    if (widget.template["isPremium"])
+                    if (widget.template["ispremium"])
                       Positioned(
                         top: 8,
                         right: 8,

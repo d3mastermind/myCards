@@ -74,7 +74,7 @@ class CardRow extends StatelessWidget {
                   width: 200,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: TemplateCard(
+                    child: CardTemplate(
                       template: templates[index],
                     ),
                   ),

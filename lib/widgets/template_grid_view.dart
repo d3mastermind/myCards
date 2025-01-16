@@ -48,7 +48,7 @@ class TemplateGridScreen extends StatelessWidget {
                 itemCount: templates.length,
                 itemBuilder: (context, index) {
                   final template = templates[index];
-                  return TemplateCard(template: template); // Custom card widget
+                  return CardTemplate(template: template); // Custom card widget
                 },
               ),
             ),
