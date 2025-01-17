@@ -77,3 +77,14 @@ class CardDataNotifier extends StateNotifier<CardData> {
     state = state.copyWith(voiceRecording: recordingUrl);
   }
 }
+
+final cardDataProvider = StateNotifierProvider.family<CardDataNotifier,
+    CardData, Map<String, dynamic>>((ref, template) {
+  return CardDataNotifier(
+    CardData(
+      templateId: template["templateId"],
+      frontCover: template["frontCover"],
+      senderId: "currentUserId", // Replace with actual sender ID
+    ),
+  );
+});

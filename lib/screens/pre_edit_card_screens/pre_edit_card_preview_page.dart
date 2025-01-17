@@ -67,7 +67,9 @@ class PreEditCardPreviewPage extends StatelessWidget {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => EditCardPage(),
+                              builder: (context) => EditCardPage(
+                                template: template,
+                              ),
                             ));
                       },
                       style: ElevatedButton.styleFrom(
