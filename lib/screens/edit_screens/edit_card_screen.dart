@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/providers/card_data_provider.dart';
 import 'package:mycards/screens/card_screens/front_cover.dart';
+import 'package:mycards/screens/edit_screens/custom_image_screen.dart';
 import 'package:mycards/screens/edit_screens/edit_message_screen.dart';
 import 'package:mycards/screens/edit_screens/send_card_credits.dart';
+import 'package:mycards/screens/edit_screens/voice_recording_screen.dart';
 
 class EditCardPage extends ConsumerWidget {
   const EditCardPage({super.key, required this.template});
@@ -65,8 +67,8 @@ class EditCardPage extends ConsumerWidget {
                     ),
                   ),
                 ),
-                Placeholder(),
-                Placeholder(),
+                CustomImageScreen(),
+                VoiceRecordingScreen(),
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16.0, vertical: 16),
