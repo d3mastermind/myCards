@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mycards/providers/card_data_provider.dart';
 
 class SendCardCreditsScreen extends StatefulWidget {
   final int currentBalance;
-
-  const SendCardCreditsScreen({super.key, required this.currentBalance});
+  final StateNotifierProvider<CardDataNotifier, CardData> provider;
+  const SendCardCreditsScreen({
+    super.key,
+    required this.currentBalance,
+    required this.provider,
+  });
 
   @override
   State<SendCardCreditsScreen> createState() => _SendCardCreditsScreenState();

@@ -5,17 +5,16 @@ import 'package:mycards/screens/card_screens/custom_text_view.dart';
 
 class EditMessageView extends ConsumerWidget {
   final String bgImage;
-  final Map<String, dynamic> template;
 
-  const EditMessageView({
-    super.key,
-    required this.bgImage,
-    required this.template,
-  });
+  /// Okay Motigbo Main
+  const EditMessageView(
+      {super.key, required this.bgImage, required this.provider});
+
+  final StateNotifierProvider<CardDataNotifier, CardData> provider;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cardData = ref.watch(cardDataProvider(template));
+    final cardData = ref.watch(provider);
 
     return Scaffold(
       body: Stack(
@@ -37,7 +36,11 @@ class EditMessageView extends ConsumerWidget {
             right: 20,
             child: GestureDetector(
               onTap: () {
-                showEditTextModalBottom(context, ref, template);
+                showEditTextModalBottom(
+                  context,
+                  ref,
+                  provider,
+                );
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -59,8 +62,8 @@ class EditMessageView extends ConsumerWidget {
   }
 }
 
-void showEditTextModalBottom(
-    BuildContext context, WidgetRef ref, Map<String, dynamic> template) {
+void showEditTextModalBottom(BuildContext context, WidgetRef ref,
+    StateNotifierProvider<CardDataNotifier, CardData> provider) {
   showModalBottomSheet(
     context: context,
     builder: (context) {
@@ -88,32 +91,25 @@ void showEditTextModalBottom(
           // To Message
           EditMessageOption(
             label: "To Message (Header)",
-            initialValue: ref.read(cardDataProvider(template)).to ?? "To",
+            initialValue: ref.read(provider).to ?? "To",
             onSave: (value) {
-              ref
-                  .read(cardDataProvider(template).notifier)
-                  .saveGreeting(value, null, null);
+              ref.read(provider.notifier).saveGreeting(value, null, null);
             },
           ),
           // Main Message
           EditMessageOption(
             label: "Main Message",
-            initialValue:
-                ref.read(cardDataProvider(template)).greeting ?? "Greeting",
+            initialValue: ref.read(provider).greeting ?? "Greeting",
             onSave: (value) {
-              ref
-                  .read(cardDataProvider(template).notifier)
-                  .saveGreeting(null, null, value);
+              ref.read(provider.notifier).saveGreeting(null, null, value);
             },
           ),
           // From Message
           EditMessageOption(
             label: "From Message (Footer)",
-            initialValue: ref.read(cardDataProvider(template)).from ?? "From",
+            initialValue: ref.read(provider).from ?? "From",
             onSave: (value) {
-              ref
-                  .read(cardDataProvider(template).notifier)
-                  .saveGreeting(null, value, null);
+              ref.read(provider.notifier).saveGreeting(null, value, null);
             },
           ),
           const SizedBox(height: 30),

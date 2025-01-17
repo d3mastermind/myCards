@@ -78,13 +78,8 @@ class CardDataNotifier extends StateNotifier<CardData> {
   }
 }
 
-final cardDataProvider = StateNotifierProvider.family<CardDataNotifier,
-    CardData, Map<String, dynamic>>((ref, template) {
-  return CardDataNotifier(
-    CardData(
-      templateId: template["templateId"],
-      frontCover: template["frontCover"],
-      senderId: "currentUserId", // Replace with actual sender ID
-    ),
-  );
-});
+final cardEditingProvider = StateNotifierProvider<CardDataNotifier, CardData>(
+  (ref) {
+    throw UnimplementedError('Provider must be overridden');
+  },
+);
