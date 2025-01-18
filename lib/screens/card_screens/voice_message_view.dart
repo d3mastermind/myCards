@@ -35,7 +35,8 @@ class _VoiceMessageViewState extends State<VoiceMessageView> {
 
   void _playAudio() async {
     if (!isPlaying) {
-      await _audioPlayer.play(AssetSource(widget.audioUrl));
+      //await _audioPlayer.play(AssetSource(widget.audioUrl));
+      await _audioPlayer.play(DeviceFileSource(widget.audioUrl));
 
       setState(() {
         isPlaying = true;

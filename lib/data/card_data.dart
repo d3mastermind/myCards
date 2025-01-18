@@ -1,4 +1,6 @@
-List<Map<String, dynamic>> cardData = [
+import 'package:mycards/providers/card_data_provider.dart';
+
+List<Map<String, dynamic>> jsonCardData = [
   {
     "cardId": "card1",
     "templateId": "template1",
@@ -56,3 +58,5 @@ List<Map<String, dynamic>> cardData = [
     "voiceRecording": "https://example.com/congratulations-voice.mp3",
   },
 ];
+
+final data = CardData(templateId: "ii",frontCover: "00",senderId: "Mastermind",creditsAttached: 30,);

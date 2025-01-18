@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Card Data Class
@@ -67,6 +69,7 @@ class CardDataNotifier extends StateNotifier<CardData> {
 
   void saveGreeting(String? to, String? from, String? greeting) {
     state = state.copyWith(to: to, from: from, greeting: greeting);
+    log('Saving Greeting - To: $to, From: $from, Greeting: $greeting');
   }
 
   void uploadCustomImage(String imageUrl) {

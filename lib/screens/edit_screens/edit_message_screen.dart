@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/providers/card_data_provider.dart';
@@ -7,14 +9,14 @@ class EditMessageView extends ConsumerWidget {
   final String bgImage;
 
   /// Okay Motigbo Main
-  const EditMessageView(
-      {super.key, required this.bgImage, required this.provider});
-
-  final StateNotifierProvider<CardDataNotifier, CardData> provider;
+  const EditMessageView({
+    super.key,
+    required this.bgImage,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cardData = ref.watch(provider);
+    final cardData = ref.watch(cardEditingProvider);
 
     return Scaffold(
       body: Stack(
@@ -23,7 +25,7 @@ class EditMessageView extends ConsumerWidget {
             children: [
               Expanded(
                 child: CustomTextView(
-                  toMessage: cardData.to ?? "T0 Message",
+                  toMessage: cardData.to ?? "To Message",
                   fromMeassage: cardData.from ?? "From Message",
                   customMessage: cardData.greeting ?? "Main Message",
                   bgImageUrl: bgImage,
@@ -39,7 +41,6 @@ class EditMessageView extends ConsumerWidget {
                 showEditTextModalBottom(
                   context,
                   ref,
-                  provider,
                 );
               },
               child: Container(
@@ -62,8 +63,10 @@ class EditMessageView extends ConsumerWidget {
   }
 }
 
-void showEditTextModalBottom(BuildContext context, WidgetRef ref,
-    StateNotifierProvider<CardDataNotifier, CardData> provider) {
+void showEditTextModalBottom(
+  BuildContext context,
+  WidgetRef ref,
+) {
   showModalBottomSheet(
     context: context,
     builder: (context) {
@@ -91,25 +94,31 @@ void showEditTextModalBottom(BuildContext context, WidgetRef ref,
           // To Message
           EditMessageOption(
             label: "To Message (Header)",
-            initialValue: ref.read(provider).to ?? "To",
+            initialValue: ref.read(cardEditingProvider).to ?? "To",
             onSave: (value) {
-              ref.read(provider.notifier).saveGreeting(value, null, null);
+              ref
+                  .read(cardEditingProvider.notifier)
+                  .saveGreeting(value, null, null);
             },
           ),
           // Main Message
           EditMessageOption(
             label: "Main Message",
-            initialValue: ref.read(provider).greeting ?? "Greeting",
+            initialValue: ref.read(cardEditingProvider).greeting ?? "Greeting",
             onSave: (value) {
-              ref.read(provider.notifier).saveGreeting(null, null, value);
+              ref
+                  .read(cardEditingProvider.notifier)
+                  .saveGreeting(null, null, value);
             },
           ),
           // From Message
           EditMessageOption(
             label: "From Message (Footer)",
-            initialValue: ref.read(provider).from ?? "From",
+            initialValue: ref.read(cardEditingProvider).from ?? "From",
             onSave: (value) {
-              ref.read(provider.notifier).saveGreeting(null, value, null);
+              ref
+                  .read(cardEditingProvider.notifier)
+                  .saveGreeting(null, value, null);
             },
           ),
           const SizedBox(height: 30),

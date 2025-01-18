@@ -37,20 +37,27 @@ class _EditCardPageState extends ConsumerState<EditCardPage> {
         child: Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
+            centerTitle: true,
             title: const Text("Customise card"),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.save),
-                onPressed: () => _saveCard(),
-              ),
-            ],
+            backgroundColor: Colors.white,
+            elevation: 0,
           ),
           body: Column(
             children: [
-              const TabBar(
+              TabBar(
+                labelColor: Colors.orange,
+                indicatorColor: Colors.orange,
+                unselectedLabelColor: Colors.grey,
                 tabs: [
-                  Tab(icon: Icon(Icons.edit_document)),
-                  Tab(icon: Icon(Icons.edit_note_outlined)),
+                  Tab(
+                    icon: Icon(
+                      Icons.edit_document,
+                    ),
+                  ),
+                  Tab(
+                      icon: Icon(
+                    Icons.edit_note_outlined,
+                  )),
                   Tab(icon: Icon(Icons.image_outlined)),
                   Tab(icon: Icon(Icons.mic_outlined)),
                   Tab(icon: Icon(Icons.monetization_on_outlined)),
@@ -73,7 +80,6 @@ class _EditCardPageState extends ConsumerState<EditCardPage> {
                         borderRadius: BorderRadius.circular(12),
                         child: EditMessageView(
                           bgImage: widget.template["frontCover"],
-                          provider: cardEditingProvider,
                         ),
                       ),
                     ),
@@ -81,15 +87,14 @@ class _EditCardPageState extends ConsumerState<EditCardPage> {
                       padding: const EdgeInsets.all(16.0),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: CustomImageScreen(provider: cardEditingProvider),
+                        child: CustomImageScreen(),
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child:
-                            VoiceRecordingScreen(provider: cardEditingProvider),
+                        child: VoiceRecordingScreen(),
                       ),
                     ),
                     Padding(
@@ -97,7 +102,6 @@ class _EditCardPageState extends ConsumerState<EditCardPage> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: SendCardCreditsScreen(
-                          provider: cardEditingProvider,
                           currentBalance: 900,
                         ),
                       ),
@@ -114,7 +118,12 @@ class _EditCardPageState extends ConsumerState<EditCardPage> {
 
   void _saveCard() async {
     final cardData = ref.read(cardEditingProvider);
-    // Save to Firebase
-    log(cardData.greeting!);
+
+    // Log data to debug
+    log('To: ${cardData.to}');
+    log('From: ${cardData.from}');
+    log('Greeting: ${cardData.greeting}');
+    log('Custom Image: ${cardData.customImage}');
+    log('Voice Recording: ${cardData.voiceRecording}');
   }
 }

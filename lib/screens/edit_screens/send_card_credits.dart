@@ -1,67 +1,135 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/providers/card_data_provider.dart';
+import 'package:mycards/screens/card_screens/card_page_view.dart';
 
-class SendCardCreditsScreen extends StatefulWidget {
+class SendCardCreditsScreen extends ConsumerStatefulWidget {
   final int currentBalance;
-  final StateNotifierProvider<CardDataNotifier, CardData> provider;
   const SendCardCreditsScreen({
     super.key,
     required this.currentBalance,
-    required this.provider,
   });
 
   @override
-  State<SendCardCreditsScreen> createState() => _SendCardCreditsScreenState();
+  ConsumerState<SendCardCreditsScreen> createState() =>
+      _SendCardCreditsScreenState();
 }
 
-class _SendCardCreditsScreenState extends State<SendCardCreditsScreen> {
+class _SendCardCreditsScreenState extends ConsumerState<SendCardCreditsScreen> {
   final TextEditingController _creditsController = TextEditingController();
-  int _selectedCredits = 0;
+  int _selectedCredits = 10; // Default value as specified
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the controller with the default extra credits (excluding the free 10)
+    _creditsController.text = '0';
+
+    // Get initial credits from provider if available
+    final cardData = ref.read(cardEditingProvider);
+    if (cardData.creditsAttached != null) {
+      _selectedCredits = cardData.creditsAttached!;
+      _creditsController.text = (cardData.creditsAttached! - 10).toString();
+    }
+  }
 
   @override
   void dispose() {
-    // Dispose of the controller to free resources
     _creditsController.dispose();
     super.dispose();
   }
 
   void _updateSelectedCredits(String value) {
+    final extraCredits = int.tryParse(value) ?? 0;
     setState(() {
-      _selectedCredits = int.tryParse(value) ?? 0;
+      _selectedCredits = extraCredits + 10; // Add the free credits
     });
+
+    // Update the provider
+    ref.read(cardEditingProvider.notifier).updateCredits(_selectedCredits);
   }
 
   void _incrementCredits() {
     if (_selectedCredits < widget.currentBalance) {
       setState(() {
         _selectedCredits++;
-        _creditsController.text = _selectedCredits.toString();
+        _creditsController.text = (_selectedCredits - 10).toString();
       });
+      ref.read(cardEditingProvider.notifier).updateCredits(_selectedCredits);
     }
   }
 
   void _decrementCredits() {
-    if (_selectedCredits > 0) {
+    if (_selectedCredits > 10) {
+      // Don't go below the free credits
       setState(() {
         _selectedCredits--;
-        _creditsController.text = _selectedCredits.toString();
+        _creditsController.text = (_selectedCredits - 10).toString();
       });
+      ref.read(cardEditingProvider.notifier).updateCredits(_selectedCredits);
     }
   }
 
   bool get _isContinueButtonEnabled {
-    return _selectedCredits > 0 && _selectedCredits <= widget.currentBalance;
+    return _selectedCredits >= 10 && _selectedCredits <= widget.currentBalance;
+  }
+
+  void _handleFinishAndPreview() {
+    final cardData = ref.read(cardEditingProvider);
+    // if (cardData == null) {
+    //   // Show error if no card data exists
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text('Error: Card data not found')),
+    //   );
+    //   return;
+    // }
+
+    // Create final CardData object with all previous data plus credits
+    final finalCardData = cardData.copyWith(
+      creditsAttached: _selectedCredits,
+    );
+
+    // Navigate to preview
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CardPageView(cardData: finalCardData),
+      ),
+    );
+  }
+
+  void _handleSkip() {
+    final cardData = ref.read(cardEditingProvider);
+    if (cardData != null) {
+      // Update provider with default credits
+      ref.read(cardEditingProvider.notifier).updateCredits(10);
+
+      // Navigate to preview with default credits
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CardPageView(
+            cardData: cardData.copyWith(creditsAttached: 10),
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: Card data not found')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch the provider for changes
+    final cardData = ref.watch(cardEditingProvider);
+
     return Scaffold(
       backgroundColor: Colors.grey.withAlpha(20),
       appBar: AppBar(
-        leading: SizedBox(
-          width: 0,
-        ),
+        leading: const SizedBox(),
         title: const Text("Attach Credits to Card"),
         backgroundColor: Colors.orange,
       ),
@@ -78,8 +146,6 @@ class _SendCardCreditsScreenState extends State<SendCardCreditsScreen> {
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 16),
-
-            // Credit Balance Display
             Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -87,14 +153,18 @@ class _SendCardCreditsScreenState extends State<SendCardCreditsScreen> {
               elevation: 4,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                    vertical: 16.0, horizontal: 24.0),
+                  vertical: 16.0,
+                  horizontal: 24.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       "Your Credits Balance: ${widget.currentBalance}",
                       style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     ElevatedButton(
                       onPressed: () {
@@ -108,8 +178,6 @@ class _SendCardCreditsScreenState extends State<SendCardCreditsScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
-            // Input Field for Credits
             const Text(
               "Enter Credits to Attach:",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -117,7 +185,6 @@ class _SendCardCreditsScreenState extends State<SendCardCreditsScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                // Stepper for Increment/Decrement
                 IconButton(
                   onPressed: _decrementCredits,
                   icon: const Icon(Icons.remove_circle_outline),
@@ -128,7 +195,7 @@ class _SendCardCreditsScreenState extends State<SendCardCreditsScreen> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: "Enter credits",
+                      hintText: "Enter additional credits",
                     ),
                     onChanged: _updateSelectedCredits,
                   ),
@@ -140,9 +207,7 @@ class _SendCardCreditsScreenState extends State<SendCardCreditsScreen> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Mini-preview (optional)
-            if (_selectedCredits > 0)
+            if (_selectedCredits >= 10)
               Card(
                 color: Colors.orange[50],
                 shape: RoundedRectangleBorder(
@@ -155,7 +220,7 @@ class _SendCardCreditsScreenState extends State<SendCardCreditsScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Credits to be Attached: $_selectedCredits + 10",
+                        "Credits to be Attached: ${_selectedCredits - 10} + 10",
                         style: const TextStyle(fontSize: 16),
                       ),
                       const Icon(Icons.card_giftcard, color: Colors.black),
@@ -163,28 +228,17 @@ class _SendCardCreditsScreenState extends State<SendCardCreditsScreen> {
                   ),
                 ),
               ),
-
             const Spacer(),
-
-            // Skip and Continue Buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton(
-                  onPressed: () {
-                    // Skip action
-                    Navigator.pop(context);
-                  },
+                  onPressed: _handleSkip,
                   child: const Text("Skip"),
                 ),
                 ElevatedButton(
-                  onPressed: _isContinueButtonEnabled
-                      ? () {
-                          // Proceed with attaching credits
-                          print("Attached $_selectedCredits credits");
-                          Navigator.pop(context);
-                        }
-                      : null,
+                  onPressed:
+                      _isContinueButtonEnabled ? _handleFinishAndPreview : null,
                   child: const Text("Finish and Preview"),
                 ),
               ],

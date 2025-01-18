@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mycards/providers/card_data_provider.dart';
 import 'package:mycards/screens/card_screens/custom_text_view.dart';
 import 'package:mycards/screens/card_screens/front_cover.dart';
 import 'package:mycards/screens/card_screens/image_upload_view.dart';
@@ -7,10 +8,11 @@ import 'package:mycards/screens/card_screens/share_card_view.dart';
 import 'package:mycards/screens/card_screens/voice_message_view.dart';
 
 class CardPageView extends StatefulWidget {
-  const CardPageView(
-      {super.key, required this.template, required this.includeLastPage});
-  final Map<String, dynamic> template;
-  final bool includeLastPage;
+  const CardPageView({
+    super.key,
+    required this.cardData,
+  });
+  final CardData cardData;
 
   @override
   State<CardPageView> createState() => _CardPageViewState();
@@ -34,16 +36,13 @@ class _CardPageViewState extends State<CardPageView> {
 
   @override
   Widget build(BuildContext context) {
-    final String frontCoverImageUrl = widget.template["frontCoverImageUrl"];
-    final String toMessage = widget.template["defaultCardData"]["toMessage"];
-    final String fromMessage =
-        widget.template["defaultCardData"]["fromMessage"];
-    final String customMessage =
-        widget.template["defaultCardData"]["customMessage"];
-    final String? customImageUrl =
-        widget.template["defaultCardData"]["customImageUrl"];
-    final String? customAudioUrl =
-        widget.template["defaultCardData"]["customAudioUrl"];
+    final String frontCoverImageUrl = widget.cardData.frontCover;
+    final String toMessage = widget.cardData.to!;
+    final String fromMessage = widget.cardData.from!;
+    final String customMessage = widget.cardData.greeting!;
+    final String? customImageUrl = widget.cardData.customImage;
+    final String? customAudioUrl = widget.cardData.voiceRecording;
+    final int receivedCredits = widget.cardData.creditsAttached!;
 
     final pages = [
       FrontCoverView(
@@ -62,8 +61,7 @@ class _CardPageViewState extends State<CardPageView> {
         audioUrl: customAudioUrl ?? "audio/defaultaudio.mp3",
         bgImageUrl: frontCoverImageUrl,
       ),
-      if (widget.includeLastPage) ShareCardView(),
-      ReceivedCreditsScreen(receivedCredits: 900)
+      ReceivedCreditsScreen(receivedCredits: receivedCredits)
     ];
 
     return Scaffold(
