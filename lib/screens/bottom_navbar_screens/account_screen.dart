@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mycards/auth/auth_screens/phone_login_view.dart';
 import 'package:mycards/screens/profile_settings.dart';
 import 'package:mycards/screens/transaction_history.dart';
+import 'package:mycards/services/auth_service.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -97,13 +98,14 @@ class _AccountScreenState extends State<AccountScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PhoneLoginView(),
-                        ),
-                        (route) => false,
-                      );
+                      // Navigator.pushAndRemoveUntil(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => PhoneLoginView(),
+                      //   ),
+                      //   (route) => false,
+                      // );
+                      AuthService().signOut();
                       // Handle logout action
                     },
                     icon: const Icon(Icons.logout, color: Colors.red),

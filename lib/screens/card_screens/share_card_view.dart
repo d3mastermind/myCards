@@ -1,8 +1,8 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:lottie/lottie.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ShareCardView extends StatefulWidget {
   const ShareCardView({super.key});
@@ -12,27 +12,53 @@ class ShareCardView extends StatefulWidget {
 }
 
 class _ShareCardViewState extends State<ShareCardView> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  PhoneNumber initialPhoneNumber = PhoneNumber(isoCode: 'US');
+  String phoneNumber = "";
+
+  void _shareViaEmail() {
+    if (emailController.text.isNotEmpty) {
+      // Add your email sharing logic here
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Card shared successfully!")),
+      );
+    }
+  }
+
+  void _shareViaPhone() {
+    if (phoneNumber.isNotEmpty) {
+      // Add your phone sharing logic here
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Card shared successfully!")),
+      );
+    }
+  }
+
+  void _shareViaSocialMedia() async {
+    try {
+      await Share.share(
+        'Check out this amazing card!', // Your share message
+        subject: 'Digital Card Share', // Email subject
+        sharePositionOrigin: Rect.fromCircle(center: Offset(0, 0), radius: 10),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error sharing: ${e.toString()}")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController phoneController = TextEditingController();
-    PhoneNumber initialPhoneNumber = PhoneNumber(isoCode: 'US');
-    String phoneNumber = "";
-
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      // appBar: AppBar(
-      //   title: const Text("Share the Card"),
-      //   backgroundColor: Colors.orange,
-      // ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              //const SizedBox(height: 16),
-
               Lottie.asset("assets/animations/share.json",
                   repeat: true, height: 200),
               const Text(
@@ -53,7 +79,6 @@ class _ShareCardViewState extends State<ShareCardView> {
                 ),
               ),
               const SizedBox(height: 24),
-
               Container(
                 decoration: BoxDecoration(
                     color: Colors.grey.withAlpha(60),
@@ -73,11 +98,9 @@ class _ShareCardViewState extends State<ShareCardView> {
                 ),
               ),
               const SizedBox(height: 8),
-              Center(child: Text("OR")),
+              const Center(child: Text("OR")),
               const SizedBox(height: 8),
-
               Container(
-                //height: 50,
                 decoration: BoxDecoration(
                     color: Colors.grey.withAlpha(60),
                     borderRadius: BorderRadius.circular(20)),
@@ -85,14 +108,13 @@ class _ShareCardViewState extends State<ShareCardView> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: InternationalPhoneNumberInput(
                     initialValue: initialPhoneNumber,
-                    inputDecoration: InputDecoration(
+                    inputDecoration: const InputDecoration(
                       contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 15),
                       hintText: "Phone number",
                       border: InputBorder.none,
                     ),
                     selectorConfig: const SelectorConfig(
-                      selectorType: PhoneInputSelectorType
-                          .BOTTOM_SHEET, // Dropdown or bottom sheet
+                      selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
                     ),
                     onInputChanged: (PhoneNumber number) {
                       setState(() {
@@ -111,16 +133,10 @@ class _ShareCardViewState extends State<ShareCardView> {
                     width: 200,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Add sharing logic
-                        String email = emailController.text;
-                        String phone = phoneController.text;
-
-                        if (email.isNotEmpty || phone.isNotEmpty) {
-                          // Logic to send the card
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text("Card shared successfully!")),
-                          );
+                        if (emailController.text.isNotEmpty) {
+                          _shareViaEmail();
+                        } else if (phoneNumber.isNotEmpty) {
+                          _shareViaPhone();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -155,9 +171,8 @@ class _ShareCardViewState extends State<ShareCardView> {
                 ),
               ),
               const SizedBox(height: 12),
-
               IconButton(
-                onPressed: () {},
+                onPressed: _shareViaSocialMedia,
                 icon: const Icon(
                   Icons.share_outlined,
                   color: Colors.redAccent,

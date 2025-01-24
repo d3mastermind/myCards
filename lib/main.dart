@@ -1,24 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mycards/auth/auth_screens/forgot_password_view.dart';
+import 'package:mycards/auth/auth_screens/phone_login_view.dart';
 import 'package:mycards/screens/bottom_navbar_screens/home_screen.dart';
 import 'package:mycards/screens/card_screens/card_page_view.dart';
 import 'package:mycards/screens/pre_edit_card_screens/pre_edit_card_preview_page.dart';
 import 'package:mycards/screens/pre_edit_card_screens/pre_edit_card_page_view.dart';
 import 'package:mycards/screens/bottom_navbar_controller.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:mycards/services/auth_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(
     ProviderScope(
       child: const MyApp(),
     ),
   );
-  //SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
   SystemChrome.setSystemUIOverlayStyle(
-    SystemUiOverlayStyle(
-      statusBarColor: Colors.white, // Set the color of the status bar
-      statusBarIconBrightness:
-          Brightness.dark, // Set the icon brightness (light or dark)
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.white,
+      statusBarIconBrightness: Brightness.dark,
     ),
   );
 }
@@ -31,58 +38,34 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Use a custom font family
         fontFamily: 'Roboto',
         textTheme: const TextTheme(
-          displayLarge: TextStyle(
-            fontSize: 48,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-            color: Colors.black87,
-          ),
-          displayMedium: TextStyle(
-            fontSize: 36,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-          displaySmall: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
-          ),
-          headlineMedium: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-          headlineSmall: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: Colors.black54,
-          ),
-          titleLarge: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-          bodyLarge: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.normal,
-            color: Colors.black87,
-          ),
-          bodyMedium: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.normal,
-            color: Colors.black87,
-          ),
-          labelLarge: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+            // ... (existing text theme styles)
+            ),
       ),
-      home: ScreenController(),
+      home: StreamBuilder(
+        stream: AuthService().authStateChanges,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            final user = snapshot.data!;
+            if (user.emailVerified) {
+              return const ScreenController();
+            } else {
+              // Check if the user signed in with a phone number
+              if (user.providerData
+                  .any((provider) => provider.providerId == 'phone')) {
+                // Redirect to the phone login view
+                return const ScreenController();
+              } else {
+                // Redirect to the forgot password view
+                return const ForgotPasswordView();
+              }
+            }
+          } else {
+            return const PhoneLoginView();
+          }
+        },
+      ),
     );
   }
 }

@@ -44,6 +44,13 @@ class _CardPageViewState extends State<CardPageView> {
     final String? customAudioUrl = widget.cardData.voiceRecording;
     final int receivedCredits = widget.cardData.creditsAttached!;
 
+    void goToShareScreen() {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ShareCardView()),
+      );
+    }
+
     final pages = [
       FrontCoverView(
         image: frontCoverImageUrl,
@@ -65,6 +72,30 @@ class _CardPageViewState extends State<CardPageView> {
     ];
 
     return Scaffold(
+      floatingActionButton: IconButton(
+        onPressed: () {
+          showSaveCardDialog(context, goToShareScreen);
+        },
+        icon: Icon(
+          Icons.save,
+          color: Colors.orange,
+        ),
+        iconSize: 50,
+      ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: Text("Card Preview"),
+        centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Icon(
+              Icons.cancel_outlined,
+              color: Colors.red,
+            ),
+          ),
+        ],
+      ),
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
@@ -115,4 +146,34 @@ class _CardPageViewState extends State<CardPageView> {
       ),
     );
   }
+}
+
+Future<void> showSaveCardDialog(
+    BuildContext context, VoidCallback onSave) async {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Confirm Save'),
+        content: Text(
+          'Are you sure you want to save this card? You won’t be able to edit it after sharing.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+              onSave(); // Trigger the save action
+            },
+            child: Text('Okay, Save'),
+          ),
+        ],
+      );
+    },
+  );
 }

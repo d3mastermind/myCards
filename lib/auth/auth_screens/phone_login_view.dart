@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:mycards/auth/auth_screens/email_login_view.dart';
 import 'package:mycards/auth/auth_screens/phone_signup_view.dart';
+import 'package:mycards/services/auth_service.dart';
 
 class PhoneLoginView extends StatefulWidget {
   const PhoneLoginView({super.key});
@@ -104,6 +105,8 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                             if (_formKey.currentState!.validate()) {
                               // Form is valid
                               log("Form submitted successfully!");
+                              AuthService()
+                                  .signUpWithPhone(phoneNumber, context);
                             }
                           },
                           style: ButtonStyle(

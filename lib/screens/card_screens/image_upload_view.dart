@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 
 class ImageUploadView extends StatefulWidget {
   const ImageUploadView({super.key, required this.customImageUrl});
@@ -11,8 +12,8 @@ class ImageUploadView extends StatefulWidget {
 class _ImageUploadViewState extends State<ImageUploadView> {
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      widget.customImageUrl,
+    return Image.file(
+      File(widget.customImageUrl),
       fit: BoxFit.cover,
     );
   }
