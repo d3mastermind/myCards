@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mycards/auth/auth_screens/email_verify_view.dart';
 import 'package:mycards/auth/auth_screens/forgot_password_view.dart';
 import 'package:mycards/auth/auth_screens/phone_login_view.dart';
 import 'package:mycards/screens/bottom_navbar_screens/home_screen.dart';
@@ -46,24 +47,24 @@ class MyApp extends StatelessWidget {
       home: StreamBuilder(
         stream: AuthService().authStateChanges,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final user = snapshot.data!;
-            if (user.emailVerified) {
-              return const ScreenController();
-            } else {
-              // Check if the user signed in with a phone number
-              if (user.providerData
+          if (snapshot.connectionState == ConnectionState.active) {
+            if (snapshot.hasData) {
+              final user = snapshot.data!;
+              if (user.emailVerified) {
+                return const ScreenController();
+              } else if (user.providerData
                   .any((provider) => provider.providerId == 'phone')) {
-                // Redirect to the phone login view
                 return const ScreenController();
               } else {
-                // Redirect to the forgot password view
-                return const ForgotPasswordView();
+                return const EmailVerifyView();
               }
+            } else {
+              // No user is signed in
+              return const PhoneLoginView();
             }
-          } else {
-            return const PhoneLoginView();
           }
+          // Show a loading indicator while waiting for the stream
+          return const Center(child: CircularProgressIndicator());
         },
       ),
     );

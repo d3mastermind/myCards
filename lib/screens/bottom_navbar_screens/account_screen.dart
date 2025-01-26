@@ -97,16 +97,13 @@ class _AccountScreenState extends State<AccountScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      // Navigator.pushAndRemoveUntil(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => PhoneLoginView(),
-                      //   ),
-                      //   (route) => false,
-                      // );
-                      AuthService().signOut();
-                      // Handle logout action
+                    onPressed: () async {
+                      await AuthService().signOut();
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                            builder: (context) => const PhoneLoginView()),
+                        (route) => false,
+                      );
                     },
                     icon: const Icon(Icons.logout, color: Colors.red),
                     label: const Text(

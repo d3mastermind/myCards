@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:mycards/auth/auth_screens/email_login_view.dart';
 import 'package:mycards/auth/auth_screens/phone_signup_view.dart';
+import 'package:mycards/main.dart';
 import 'package:mycards/services/auth_service.dart';
 
 class PhoneLoginView extends StatefulWidget {
@@ -101,11 +102,11 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                         width: 250,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (_formKey.currentState!.validate()) {
                               // Form is valid
                               log("Form submitted successfully!");
-                              AuthService()
+                              await AuthService()
                                   .signUpWithPhone(phoneNumber, context);
                             }
                           },
@@ -163,24 +164,35 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                   ),
                   Column(
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Colors.grey.withAlpha(60)),
-                        height: 50,
-                        child: Row(
-                          spacing: 10,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              "assets/icons/google.png",
-                              height: 40,
+                      GestureDetector(
+                        onTap: () {
+                          AuthService().signInWithGoogle();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MyApp(),
                             ),
-                            Text(
-                              "Log in With Google",
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                          ],
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.grey.withAlpha(60)),
+                          height: 50,
+                          child: Row(
+                            spacing: 10,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                "assets/icons/google.png",
+                                height: 40,
+                              ),
+                              Text(
+                                "Log in With Google",
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       SizedBox(

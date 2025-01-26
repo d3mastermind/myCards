@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mycards/auth/auth_screens/otp_verification_view.dart';
+import 'package:mycards/main.dart';
 import 'package:mycards/screens/bottom_navbar_screens/home_screen.dart';
 
 class AuthService {
@@ -14,6 +15,15 @@ class AuthService {
   AuthService._internal();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  User? get currentUser {
+    final user = _auth.currentUser;
+    return user;
+  }
+
+  Future<void> reloadUser() async {
+    await _auth.currentUser?.reload(); 
+  }
 
   // Stream to listen for user changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -54,7 +64,7 @@ class AuthService {
         await _auth.signInWithCredential(credential);
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (context) => MyApp()),
           (route) => false,
         );
       },

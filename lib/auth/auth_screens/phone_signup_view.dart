@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:mycards/auth/auth_screens/email_signup_view.dart';
 import 'package:mycards/auth/auth_screens/phone_login_view.dart';
+import 'package:mycards/main.dart';
+import 'package:mycards/services/auth_service.dart';
 
 class PhoneSignUpView extends StatefulWidget {
   const PhoneSignUpView({super.key});
@@ -16,8 +18,6 @@ class _PhoneSignUpViewState extends State<PhoneSignUpView> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool obscureText = true;
   bool obscureText2 = true;
-  String password = "";
-  String confirmPassword = "";
   String phoneNumber = "";
   PhoneNumber initialPhoneNumber = PhoneNumber(isoCode: 'US');
   @override
@@ -100,10 +100,12 @@ class _PhoneSignUpViewState extends State<PhoneSignUpView> {
                         width: 250,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (_formKey.currentState!.validate()) {
                               // Form is valid
                               log("Form submitted successfully!");
+                              await AuthService()
+                                  .signUpWithPhone(phoneNumber, context);
                             }
                           },
                           style: ButtonStyle(
@@ -162,24 +164,35 @@ class _PhoneSignUpViewState extends State<PhoneSignUpView> {
                   ),
                   Column(
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Colors.grey.withAlpha(60)),
-                        height: 50,
-                        child: Row(
-                          spacing: 10,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              "assets/icons/google.png",
-                              height: 40,
+                      GestureDetector(
+                        onTap: () async {
+                          await AuthService().signUpWithGoogle();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MyApp(),
                             ),
-                            Text(
-                              "Sign Up With Google",
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                          ],
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.grey.withAlpha(60)),
+                          height: 50,
+                          child: Row(
+                            spacing: 10,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                "assets/icons/google.png",
+                                height: 40,
+                              ),
+                              Text(
+                                "Sign Up With Google",
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       SizedBox(

@@ -6,6 +6,8 @@ import 'package:mycards/auth/auth_screens/email_login_view.dart';
 import 'package:mycards/auth/auth_screens/forgot_password_view.dart';
 import 'package:mycards/auth/auth_screens/phone_login_view.dart';
 import 'package:mycards/auth/auth_screens/phone_signup_view.dart';
+import 'package:mycards/main.dart';
+import 'package:mycards/services/auth_service.dart';
 
 class EmailLoginView extends StatefulWidget {
   const EmailLoginView({super.key});
@@ -67,7 +69,7 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                           children: [
                             TextFormField(
                               keyboardType: TextInputType.emailAddress,
-                              onChanged: (value) => password = value,
+                              onChanged: (value) => email = value,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return "Please enter a valid Email.";
@@ -155,9 +157,17 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                           width: 250,
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               if (_formKey.currentState!.validate()) {
                                 // Form is valid
+                                await AuthService()
+                                    .signInWithEmail(email, password);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const MyApp(),
+                                  ),
+                                );
                                 log("Form submitted successfully!");
                               }
                             },
@@ -215,24 +225,35 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                     ),
                     Column(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.grey.withAlpha(60)),
-                          height: 50,
-                          child: Row(
-                            spacing: 10,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                "assets/icons/google.png",
-                                height: 40,
+                        GestureDetector(
+                          onTap: () async {
+                            await AuthService().signUpWithGoogle();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MyApp(),
                               ),
-                              Text(
-                                "Login With Google",
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                            ],
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.grey.withAlpha(60)),
+                            height: 50,
+                            child: Row(
+                              spacing: 10,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  "assets/icons/google.png",
+                                  height: 40,
+                                ),
+                                Text(
+                                  "Login With Google",
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         SizedBox(

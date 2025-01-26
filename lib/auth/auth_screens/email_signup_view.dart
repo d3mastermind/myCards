@@ -1,8 +1,11 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:mycards/auth/auth_screens/email_verify_view.dart';
 import 'package:mycards/auth/auth_screens/phone_login_view.dart';
 import 'package:mycards/auth/auth_screens/phone_signup_view.dart';
+import 'package:mycards/main.dart';
+import 'package:mycards/services/auth_service.dart';
 
 class EmailSignUpView extends StatefulWidget {
   const EmailSignUpView({super.key});
@@ -59,7 +62,7 @@ class _EmailSignUpViewState extends State<EmailSignUpView> {
                           children: [
                             TextFormField(
                               keyboardType: TextInputType.emailAddress,
-                              onChanged: (value) => password = value,
+                              onChanged: (value) => email = value,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return "Please enter a valid Email.";
@@ -166,10 +169,24 @@ class _EmailSignUpViewState extends State<EmailSignUpView> {
                           width: 250,
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               if (_formKey.currentState!.validate()) {
                                 // Form is valid
                                 log("Form submitted successfully!");
+                                log(email);
+                                log(password);
+                                await AuthService()
+                                    .signUpWithEmail(email, password);
+                                AuthService()
+                                    .currentUser
+                                    ?.sendEmailVerification();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const EmailVerifyView(),
+                                  ),
+                                );
                               }
                             },
                             style: ButtonStyle(
@@ -228,24 +245,35 @@ class _EmailSignUpViewState extends State<EmailSignUpView> {
                     ),
                     Column(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.grey.withAlpha(60)),
-                          height: 50,
-                          child: Row(
-                            spacing: 10,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                "assets/icons/google.png",
-                                height: 40,
+                        GestureDetector(
+                          onTap: () async {
+                            await AuthService().signUpWithGoogle;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MyApp(),
                               ),
-                              Text(
-                                "Sign Up With Google",
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                            ],
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.grey.withAlpha(60)),
+                            height: 50,
+                            child: Row(
+                              spacing: 10,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  "assets/icons/google.png",
+                                  height: 40,
+                                ),
+                                Text(
+                                  "Sign Up With Google",
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         SizedBox(
