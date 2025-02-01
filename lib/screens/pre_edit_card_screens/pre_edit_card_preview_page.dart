@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:mycards/screens/edit_screens/edit_card_screen.dart';
 import 'package:mycards/screens/pre_edit_card_screens/pre_edit_card_page_view.dart';
 
-class PreEditCardPreviewPage extends StatelessWidget {
+class PreEditCardPreviewPage extends StatefulWidget {
   final Map<String, dynamic> template;
 
   const PreEditCardPreviewPage({super.key, required this.template});
 
+  @override
+  State<PreEditCardPreviewPage> createState() => _PreEditCardPreviewPageState();
+}
+
+class _PreEditCardPreviewPageState extends State<PreEditCardPreviewPage> {
+  bool isPurchased = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +41,7 @@ class PreEditCardPreviewPage extends StatelessWidget {
               child: SizedBox(
                   width: 350,
                   child: PreEditCardPageView(
-                    template: template,
+                    template: widget.template,
                     includeLastPage: false,
                   )),
             ),
@@ -45,7 +51,7 @@ class PreEditCardPreviewPage extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    template["name"] ?? "Generic Card Name",
+                    widget.template["name"] ?? "Generic Card Name",
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -53,7 +59,7 @@ class PreEditCardPreviewPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "Price: ${template["price"] ?? "0"} credits",
+                    "Price: ${widget.template["price"] ?? "0"} credits",
                     style: const TextStyle(
                       fontSize: 16,
                       color: Colors.black54,
@@ -64,13 +70,16 @@ class PreEditCardPreviewPage extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
+                        if (isPurchased) {
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => EditCardPage(
-                                template: template,
+                                template: widget.template, 
                               ),
-                            ));
+                            ),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.yellow,
