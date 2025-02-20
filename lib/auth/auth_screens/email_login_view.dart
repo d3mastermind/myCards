@@ -23,6 +23,8 @@ class _EmailLoginViewState extends State<EmailLoginView> {
   String password = "";
   String confirmPassword = "";
   String email = "";
+  bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -157,20 +159,25 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                           width: 250,
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: () async {
-                              if (_formKey.currentState!.validate()) {
-                                // Form is valid
-                                await AuthService()
-                                    .signInWithEmail(email, password);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const MyApp(),
-                                  ),
-                                );
-                                log("Form submitted successfully!");
-                              }
-                            },
+                            onPressed: _isLoading
+                                ? null
+                                : () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      setState(() => _isLoading = true);
+                                      try {
+                                        await AuthService()
+                                            .signInWithEmail(email, password);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const MyApp(),
+                                          ),
+                                        );
+                                      } finally {
+                                        setState(() => _isLoading = false);
+                                      }
+                                    }
+                                  },
                             style: ButtonStyle(
                               backgroundColor: WidgetStatePropertyAll(
                                 const Color.fromARGB(255, 255, 215, 0),
@@ -181,10 +188,20 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                                 ),
                               ),
                             ),
-                            child: Text(
-                              "Log In",
-                              style: Theme.of(context).textTheme.displaySmall,
-                            ),
+                            child: _isLoading
+                                ? SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    "Log In",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .displaySmall,
+                                  ),
                           ),
                         )
                       ],
@@ -226,15 +243,23 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                     Column(
                       children: [
                         GestureDetector(
-                          onTap: () async {
-                            await AuthService().signUpWithGoogle();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const MyApp(),
-                              ),
-                            );
-                          },
+                          onTap: _isGoogleLoading
+                              ? null
+                              : () async {
+                                  setState(() => _isGoogleLoading = true);
+                                  try {
+                                    await AuthService().signUpWithGoogle();
+                                    if (!mounted) return;
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const MyApp(),
+                                      ),
+                                    );
+                                  } finally {
+                                    setState(() => _isGoogleLoading = false);
+                                  }
+                                },
                           child: Container(
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
@@ -244,12 +269,23 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                               spacing: 10,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Image.asset(
-                                  "assets/icons/google.png",
-                                  height: 40,
-                                ),
+                                if (_isGoogleLoading)
+                                  const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                else
+                                  Image.asset(
+                                    "assets/icons/google.png",
+                                    height: 40,
+                                  ),
                                 Text(
-                                  "Login With Google",
+                                  _isGoogleLoading
+                                      ? "Signing in..."
+                                      : "Sign Up With Google",
                                   style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                               ],

@@ -6,6 +6,7 @@ import 'package:mycards/screens/card_screens/image_upload_view.dart';
 import 'package:mycards/screens/card_screens/received_credit.dart';
 import 'package:mycards/screens/card_screens/share_card_view.dart';
 import 'package:mycards/screens/card_screens/voice_message_view.dart';
+import 'package:mycards/widgets/loading_overlay.dart';
 
 class CardPageView extends StatefulWidget {
   const CardPageView({
@@ -21,6 +22,8 @@ class CardPageView extends StatefulWidget {
 class _CardPageViewState extends State<CardPageView> {
   late final PageController _pageController;
   int _currentPage = 0;
+  bool _isSaving = false;
+  String? _error;
 
   @override
   void initState() {
@@ -34,6 +37,30 @@ class _CardPageViewState extends State<CardPageView> {
     super.dispose();
   }
 
+  void goToShareScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ShareCardView()),
+    );
+  }
+
+  Future<void> saveCard() async {
+    setState(() {
+      _isSaving = true;
+      _error = null;
+    });
+
+    try {
+      await Future.delayed(const Duration(seconds: 2)); // Simulate saving
+      if (!mounted) return;
+      goToShareScreen();
+    } catch (e) {
+      setState(() => _error = 'Failed to save card. Please try again.');
+    } finally {
+      setState(() => _isSaving = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final String frontCoverImageUrl = widget.cardData.frontCover;
@@ -43,13 +70,6 @@ class _CardPageViewState extends State<CardPageView> {
     final String? customImageUrl = widget.cardData.customImage;
     final String? customAudioUrl = widget.cardData.voiceRecording;
     final int receivedCredits = widget.cardData.creditsAttached!;
-
-    void goToShareScreen() {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => ShareCardView()),
-      );
-    }
 
     final pages = [
       FrontCoverView(
@@ -71,79 +91,103 @@ class _CardPageViewState extends State<CardPageView> {
       ReceivedCreditsScreen(receivedCredits: receivedCredits)
     ];
 
-    return Scaffold(
-      floatingActionButton: IconButton(
-        onPressed: () {
-          showSaveCardDialog(context, goToShareScreen);
-        },
-        icon: Icon(
-          Icons.save,
-          color: Colors.orange,
-        ),
-        iconSize: 50,
-      ),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: Text("Card Preview"),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Icon(
-              Icons.cancel_outlined,
-              color: Colors.red,
+    return Stack(
+      children: [
+        Scaffold(
+          floatingActionButton: FloatingActionButton(
+            onPressed: _isSaving
+                ? null
+                : () {
+                    showSaveCardDialog(context, saveCard);
+                  },
+            child: _isSaving
+                ? const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  )
+                : const Icon(Icons.save),
+          ),
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            title: Text("Card Preview"),
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Icon(
+                  Icons.cancel_outlined,
+                  color: Colors.red,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: pages.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPage = index;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: pages[index],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    pages.length,
+                    (index) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: _currentPage == index ? 16 : 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: _currentPage == index
+                            ? Colors.orange
+                            : Colors.grey.withAlpha(100),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
           ),
-        ],
-      ),
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: pages.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentPage = index;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 8),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: pages[index],
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                pages.length,
-                (index) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: _currentPage == index ? 16 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: _currentPage == index
-                        ? Colors.orange
-                        : Colors.grey.withAlpha(100),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+        ),
+        if (_isSaving) const LoadingOverlay(message: 'Saving your card...'),
+        if (_error != null)
+          Positioned(
+            bottom: 16.0,
+            left: 16.0,
+            right: 16.0,
+            child: Card(
+              color: Colors.red.shade100,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 }
@@ -156,7 +200,7 @@ Future<void> showSaveCardDialog(
       return AlertDialog(
         title: Text('Confirm Save'),
         content: Text(
-          'Are you sure you want to save this card? You won’t be able to edit it after sharing.',
+          "Are you sure you want to save this card? You won't be able to edit it after sharing.",
         ),
         actions: [
           TextButton(

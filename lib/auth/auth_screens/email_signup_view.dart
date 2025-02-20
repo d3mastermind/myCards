@@ -21,6 +21,8 @@ class _EmailSignUpViewState extends State<EmailSignUpView> {
   String password = "";
   String confirmPassword = "";
   String email = "";
+  bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -169,26 +171,29 @@ class _EmailSignUpViewState extends State<EmailSignUpView> {
                           width: 250,
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: () async {
-                              if (_formKey.currentState!.validate()) {
-                                // Form is valid
-                                log("Form submitted successfully!");
-                                log(email);
-                                log(password);
-                                await AuthService()
-                                    .signUpWithEmail(email, password);
-                                AuthService()
-                                    .currentUser
-                                    ?.sendEmailVerification();
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const EmailVerifyView(),
-                                  ),
-                                );
-                              }
-                            },
+                            onPressed: _isLoading
+                                ? null
+                                : () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      setState(() => _isLoading = true);
+                                      try {
+                                        await AuthService()
+                                            .signUpWithEmail(email, password);
+                                        await AuthService()
+                                            .currentUser
+                                            ?.sendEmailVerification();
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const EmailVerifyView(),
+                                          ),
+                                        );
+                                      } finally {
+                                        setState(() => _isLoading = false);
+                                      }
+                                    }
+                                  },
                             style: ButtonStyle(
                               backgroundColor:
                                   WidgetStatePropertyAll(Colors.deepOrange),
@@ -198,13 +203,22 @@ class _EmailSignUpViewState extends State<EmailSignUpView> {
                                 ),
                               ),
                             ),
-                            child: Text(
-                              "Sign Up",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .displaySmall!
-                                  .copyWith(color: Colors.white),
-                            ),
+                            child: _isLoading
+                                ? SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    "Sign Up",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .displaySmall!
+                                        .copyWith(color: Colors.white),
+                                  ),
                           ),
                         )
                       ],
@@ -246,15 +260,23 @@ class _EmailSignUpViewState extends State<EmailSignUpView> {
                     Column(
                       children: [
                         GestureDetector(
-                          onTap: () async {
-                            await AuthService().signUpWithGoogle;
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const MyApp(),
-                              ),
-                            );
-                          },
+                          onTap: _isGoogleLoading
+                              ? null
+                              : () async {
+                                  setState(() => _isGoogleLoading = true);
+                                  try {
+                                    await AuthService().signUpWithGoogle();
+                                    if (!mounted) return;
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const MyApp(),
+                                      ),
+                                    );
+                                  } finally {
+                                    setState(() => _isGoogleLoading = false);
+                                  }
+                                },
                           child: Container(
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
@@ -264,12 +286,23 @@ class _EmailSignUpViewState extends State<EmailSignUpView> {
                               spacing: 10,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Image.asset(
-                                  "assets/icons/google.png",
-                                  height: 40,
-                                ),
+                                if (_isGoogleLoading)
+                                  const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                else
+                                  Image.asset(
+                                    "assets/icons/google.png",
+                                    height: 40,
+                                  ),
                                 Text(
-                                  "Sign Up With Google",
+                                  _isGoogleLoading
+                                      ? "Signing in..."
+                                      : "Sign Up With Google",
                                   style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                               ],

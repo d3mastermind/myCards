@@ -22,7 +22,7 @@ class AuthService {
   }
 
   Future<void> reloadUser() async {
-    await _auth.currentUser?.reload(); 
+    await _auth.currentUser?.reload();
   }
 
   // Stream to listen for user changes

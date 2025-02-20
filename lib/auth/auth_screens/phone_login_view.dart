@@ -22,6 +22,9 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
   String confirmPassword = "";
   String phoneNumber = "";
   PhoneNumber initialPhoneNumber = PhoneNumber(isoCode: 'US');
+  bool _isLoading = false;
+  bool _isGoogleLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,14 +105,19 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                         width: 250,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              // Form is valid
-                              log("Form submitted successfully!");
-                              await AuthService()
-                                  .signUpWithPhone(phoneNumber, context);
-                            }
-                          },
+                          onPressed: _isLoading
+                              ? null
+                              : () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    setState(() => _isLoading = true);
+                                    try {
+                                      await AuthService().signUpWithPhone(
+                                          phoneNumber, context);
+                                    } finally {
+                                      setState(() => _isLoading = false);
+                                    }
+                                  }
+                                },
                           style: ButtonStyle(
                             backgroundColor: WidgetStatePropertyAll(
                               const Color.fromARGB(255, 255, 215, 0),
@@ -120,10 +128,19 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                               ),
                             ),
                           ),
-                          child: Text(
-                            "Log In",
-                            style: Theme.of(context).textTheme.displaySmall,
-                          ),
+                          child: _isLoading
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  "Log In",
+                                  style:
+                                      Theme.of(context).textTheme.displaySmall,
+                                ),
                         ),
                       )
                     ],
@@ -162,74 +179,85 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                   SizedBox(
                     height: 20,
                   ),
-                  Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          AuthService().signInWithGoogle();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MyApp(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.grey.withAlpha(60)),
-                          height: 50,
-                          child: Row(
-                            spacing: 10,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                "assets/icons/google.png",
-                                height: 40,
-                              ),
-                              Text(
-                                "Log in With Google",
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                            ],
+                  GestureDetector(
+                    onTap: () async {
+                      setState(() => _isGoogleLoading = true);
+                      try {
+                        await AuthService().signInWithGoogle();
+                        if (!mounted) return;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MyApp(),
                           ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EmailLoginView(),
+                        );
+                      } finally {
+                        setState(() => _isGoogleLoading = false);
+                      }
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.grey.withAlpha(60)),
+                      height: 50,
+                      child: Row(
+                        spacing: 10,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (_isGoogleLoading)
+                            const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2))
+                          else
+                            Image.asset(
+                              "assets/icons/google.png",
+                              height: 40,
                             ),
-                            (route) => false,
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.grey.withAlpha(60)),
-                          height: 50,
-                          child: Row(
-                            spacing: 10,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                "assets/icons/email.png",
-                                height: 40,
-                              ),
-                              Text(
-                                "Log In With Email",
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                            ],
+                          Text(
+                            _isGoogleLoading
+                                ? "Signing in..."
+                                : "Log in With Google",
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EmailLoginView(),
+                        ),
+                        (route) => false,
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.grey.withAlpha(60)),
+                      height: 50,
+                      child: Row(
+                        spacing: 10,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            "assets/icons/email.png",
+                            height: 40,
+                          ),
+                          Text(
+                            "Log In With Email",
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   SizedBox(
                     height: 10,

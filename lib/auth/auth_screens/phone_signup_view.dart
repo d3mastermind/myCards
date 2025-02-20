@@ -20,6 +20,8 @@ class _PhoneSignUpViewState extends State<PhoneSignUpView> {
   bool obscureText2 = true;
   String phoneNumber = "";
   PhoneNumber initialPhoneNumber = PhoneNumber(isoCode: 'US');
+  bool _isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,14 +102,19 @@ class _PhoneSignUpViewState extends State<PhoneSignUpView> {
                         width: 250,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              // Form is valid
-                              log("Form submitted successfully!");
-                              await AuthService()
-                                  .signUpWithPhone(phoneNumber, context);
-                            }
-                          },
+                          onPressed: _isLoading
+                              ? null
+                              : () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    setState(() => _isLoading = true);
+                                    try {
+                                      await AuthService().signUpWithPhone(
+                                          phoneNumber, context);
+                                    } finally {
+                                      setState(() => _isLoading = false);
+                                    }
+                                  }
+                                },
                           style: ButtonStyle(
                             backgroundColor:
                                 WidgetStatePropertyAll(Colors.deepOrange),
@@ -117,13 +124,22 @@ class _PhoneSignUpViewState extends State<PhoneSignUpView> {
                               ),
                             ),
                           ),
-                          child: Text(
-                            "Sign Up",
-                            style: Theme.of(context)
-                                .textTheme
-                                .displaySmall!
-                                .copyWith(color: Colors.white),
-                          ),
+                          child: _isLoading
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  "Sign Up",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .displaySmall!
+                                      .copyWith(color: Colors.white),
+                                ),
                         ),
                       )
                     ],
