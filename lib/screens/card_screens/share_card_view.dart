@@ -38,7 +38,7 @@ class _ShareCardViewState extends State<ShareCardView> {
   void _shareViaSocialMedia() async {
     try {
       await Share.share(
-        'Check out this amazing card!', // Your share message
+        'Check out this amazing card that i made for you  !', // Your share message
         subject: 'Digital Card Share', // Email subject
         sharePositionOrigin: Rect.fromCircle(center: Offset(0, 0), radius: 10),
       );
