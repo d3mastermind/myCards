@@ -26,3 +26,9 @@ plugins {
 }
 
 include ":app"
+
+// gradle.projectsEvaluated {
+//     project(':flutter_sound').android {
+//         namespace "com.dooboolab.fluttersound"
+//     }
+// }

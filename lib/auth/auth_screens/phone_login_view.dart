@@ -212,7 +212,7 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                                     CircularProgressIndicator(strokeWidth: 2))
                           else
                             Image.asset(
-                              "assets/icons/google.png",
+                              "assets/icon/google.png",
                               height: 40,
                             ),
                           Text(
@@ -248,7 +248,7 @@ class _PhoneLoginViewState extends State<PhoneLoginView> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Image.asset(
-                            "assets/icons/email.png",
+                            "assets/icon/email.png",
                             height: 40,
                           ),
                           Text(

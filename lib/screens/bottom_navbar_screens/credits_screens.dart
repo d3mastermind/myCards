@@ -30,7 +30,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Container(
-              height: 350,
+              height: 280,
               width: double.infinity,
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
@@ -51,14 +51,14 @@ class _CreditsScreenState extends State<CreditsScreen> {
                   const Text(
                     "6000 CR",
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     "Credit Balance",
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   const SizedBox(height: 16),
                   Center(
@@ -66,8 +66,8 @@ class _CreditsScreenState extends State<CreditsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         SizedBox(
-                          width: 250,
-                          height: 80,
+                          width: 220,
+                          height: 60,
                           child: ElevatedButton(
                             onPressed: () {
                               // Action for "Buy Credits"
@@ -75,7 +75,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 12),
+                                  horizontal: 20, vertical: 10),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
@@ -86,7 +86,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
                                 Icon(
                                   color: Colors.white,
                                   Icons.add_shopping_cart_outlined,
-                                  size: 50,
+                                  size: 36,
                                 ),
                                 Text(
                                   "Buy Credits",
@@ -95,7 +95,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
                                       .titleLarge!
                                       .copyWith(
                                         color: Colors.white,
-                                        fontSize: 24,
+                                        fontSize: 18,
                                       ),
                                 ),
                               ],
@@ -106,8 +106,8 @@ class _CreditsScreenState extends State<CreditsScreen> {
                           height: 16,
                         ),
                         SizedBox(
-                          height: 80,
-                          width: 250,
+                          height: 60,
+                          width: 220,
                           child: ElevatedButton(
                             onPressed: () {
                               // Action for "Send Credit"
@@ -115,7 +115,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.yellow,
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 12),
+                                  horizontal: 20, vertical: 10),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
@@ -130,13 +130,13 @@ class _CreditsScreenState extends State<CreditsScreen> {
                                       .titleLarge!
                                       .copyWith(
                                         color: Colors.black,
-                                        fontSize: 24,
+                                        fontSize: 18,
                                       ),
                                 ),
                                 Icon(
                                   color: Colors.black,
                                   Icons.send,
-                                  size: 50,
+                                  size: 36,
                                 ),
                               ],
                             ),
@@ -162,7 +162,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
                     Text(
                       "Recent Transactions",
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

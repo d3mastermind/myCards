@@ -48,11 +48,12 @@ class EditMessageView extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(20),
                   color: Colors.orange,
                 ),
-                height: 50,
-                width: 50,
+                height: 40,
+                width: 40,
                 child: const Icon(
                   Icons.edit_outlined,
                   color: Colors.white,
+                  size: 20,
                 ),
               ),
             ),
@@ -88,7 +89,7 @@ void showEditTextModalBottom(
               style: Theme.of(context)
                   .textTheme
                   .titleLarge!
-                  .copyWith(fontSize: 24),
+                  .copyWith(fontSize: 20),
             ),
           ),
           // To Message
@@ -148,7 +149,7 @@ class EditMessageOption extends StatelessWidget {
         if (value != null) onSave(value);
       },
       child: SizedBox(
-        height: 70,
+        height: 60,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Stack(
@@ -165,7 +166,7 @@ class EditMessageOption extends StatelessWidget {
                     color: Colors.grey.withAlpha(100),
                     borderRadius: BorderRadius.circular(30),
                   ),
-                  height: 50,
+                  height: 40,
                   child: Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,

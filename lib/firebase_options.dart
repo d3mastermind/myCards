@@ -58,7 +58,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDlvdR1cTd2_-_-yZ9_plcALTbkirNPiaU',
-    appId: '1:781667469773:android:1100ad3fdcb471de061c84',
+    appId: '1:781667469773:android:301e47843b8aaa13061c84',
     messagingSenderId: '781667469773',
     projectId: 'mycards-c7f33',
     storageBucket: 'mycards-c7f33.firebasestorage.app',
@@ -70,6 +70,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '781667469773',
     projectId: 'mycards-c7f33',
     storageBucket: 'mycards-c7f33.firebasestorage.app',
+    androidClientId: '781667469773-6i782fi5j36ceh0kvu9llkq4jej1tgue.apps.googleusercontent.com',
+    iosClientId: '781667469773-dbvd7901bej2qamt0bqbku41n30olv3r.apps.googleusercontent.com',
     iosBundleId: 'com.example.mycards',
   );
+
 }

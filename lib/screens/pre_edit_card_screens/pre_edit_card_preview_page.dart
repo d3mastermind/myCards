@@ -30,7 +30,7 @@ class _PreEditCardPreviewPageState extends State<PreEditCardPreviewPage> {
             title: const Text(
               "Card Preview",
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -45,7 +45,7 @@ class _PreEditCardPreviewPageState extends State<PreEditCardPreviewPage> {
                 // Card preview using CardPageView
                 Expanded(
                   child: SizedBox(
-                      width: 350,
+                      width: 320,
                       child: PreEditCardPageView(
                         template: widget.template,
                         includeLastPage: false,
@@ -59,7 +59,7 @@ class _PreEditCardPreviewPageState extends State<PreEditCardPreviewPage> {
                       Text(
                         widget.template["name"] ?? "Generic Card Name",
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -67,11 +67,11 @@ class _PreEditCardPreviewPageState extends State<PreEditCardPreviewPage> {
                       Text(
                         "Price: ${widget.template["price"] ?? "0"} credits",
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           color: Colors.black54,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -84,7 +84,7 @@ class _PreEditCardPreviewPageState extends State<PreEditCardPreviewPage> {
                                 },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.yellow,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -102,7 +102,7 @@ class _PreEditCardPreviewPageState extends State<PreEditCardPreviewPage> {
                               : const Text(
                                   "Purchase and Customize",
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     color: Colors.black,
                                   ),
                                 ),

@@ -296,7 +296,7 @@ class _EmailSignUpViewState extends State<EmailSignUpView> {
                                   )
                                 else
                                   Image.asset(
-                                    "assets/icons/google.png",
+                                    "assets/icon/google.png",
                                     height: 40,
                                   ),
                                 Text(
@@ -332,7 +332,7 @@ class _EmailSignUpViewState extends State<EmailSignUpView> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Image.asset(
-                                  "assets/icons/phone.png",
+                                  "assets/icon/phone.png",
                                   height: 40,
                                 ),
                                 Text(

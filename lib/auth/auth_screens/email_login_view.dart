@@ -1,8 +1,6 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:intl_phone_number_input/intl_phone_number_input.dart';
-import 'package:mycards/auth/auth_screens/email_login_view.dart';
 import 'package:mycards/auth/auth_screens/forgot_password_view.dart';
 import 'package:mycards/auth/auth_screens/phone_login_view.dart';
 import 'package:mycards/auth/auth_screens/phone_signup_view.dart';
@@ -279,7 +277,7 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                                   )
                                 else
                                   Image.asset(
-                                    "assets/icons/google.png",
+                                    "assets/icon/google.png",
                                     height: 40,
                                   ),
                                 Text(
@@ -315,7 +313,7 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Image.asset(
-                                  "assets/icons/phone.png",
+                                  "assets/icon/phone.png",
                                   height: 40,
                                 ),
                                 Text(

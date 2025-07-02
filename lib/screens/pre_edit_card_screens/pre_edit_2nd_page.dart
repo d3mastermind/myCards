@@ -45,7 +45,7 @@ class PreEdit2ndPage extends StatelessWidget {
                     child: Text(
                       "To: Receiver Name Here",
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
@@ -58,7 +58,7 @@ class PreEdit2ndPage extends StatelessWidget {
                     child: Text(
                       "From: Sender Name Here",
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
@@ -75,7 +75,7 @@ class PreEdit2ndPage extends StatelessWidget {
                           "Your Custom Message Here\nYour Custom Message Here\nYour Custom Message Here\nYour Custom Message Here\nYour Custom Message Here",
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Colors.black,
                           ),
@@ -89,8 +89,8 @@ class PreEdit2ndPage extends StatelessWidget {
                             backgroundColor: Colors.orange,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
+                              horizontal: 20,
+                              vertical: 10,
                             ),
                           ),
                           child: const Text("Customize Your Message"),

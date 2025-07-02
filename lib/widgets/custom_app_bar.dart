@@ -14,8 +14,8 @@ class CustomAppBar extends StatelessWidget {
         children: [
           // Logo
           SizedBox(
-            width: 150, // Adjust the width as needed
-            height: 70, // Adjust the height as needed
+            width: 120, // Reduced from 150
+            height: 55, // Reduced from 70
             child: Image.asset(
               'assets/images/logo.png',
               fit: BoxFit.contain,

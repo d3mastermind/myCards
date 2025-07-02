@@ -39,6 +39,7 @@ class _PreEditCardPageViewState extends State<PreEditCardPageView> {
     final pages = [
       FrontCoverView(
         image: frontCoverImageUrl,
+        isUrl: true,
       ),
       PreEdit2ndPage(bgImageUrl: frontCoverImageUrl),
       PreEdit3rdPage(),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:mycards/screens/bottom_navbar_screens/account_screen.dart';
-import 'package:mycards/screens/bottom_navbar_screens/categories_screen.dart';
+import 'package:mycards/screens/bottom_navbar_screens/categories/categories_screen.dart';
 import 'package:mycards/screens/bottom_navbar_screens/credits_screens.dart';
-import 'package:mycards/screens/bottom_navbar_screens/home_screen.dart';
+import 'package:mycards/screens/bottom_navbar_screens/home/home_screen.dart';
 import 'package:mycards/screens/bottom_navbar_screens/my_cards_screen.dart';
 
 class ScreenController extends StatefulWidget {
@@ -36,24 +36,24 @@ class ScreenControllerState extends State<ScreenController> {
         color: Colors.red,
         backgroundColor: Colors.white,
         buttonBackgroundColor: Colors.redAccent,
-        height: 60,
+        height: 50,
         items: <Widget>[
           Image.asset(
-            "assets/icons/category_icon.png",
-            height: 30,
+            "assets/icon/category_icon.png",
+            height: 26,
           ),
           Image.asset(
-            "assets/icons/cards_icon.png",
-            height: 30,
+            "assets/icon/cards_icon.png",
+            height: 26,
           ),
-          Icon(Icons.home, size: 30, color: Colors.white),
+          Icon(Icons.home, size: 26, color: Colors.white),
           Image.asset(
-            "assets/icons/accounts_icon.png",
-            height: 30,
+            "assets/icon/accounts_icon.png",
+            height: 26,
           ),
           Image.asset(
-            "assets/icons/credits_icon.png",
-            height: 30,
+            "assets/icon/credits_icon.png",
+            height: 26,
           ),
         ],
         onTap: (index) {

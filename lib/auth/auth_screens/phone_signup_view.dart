@@ -200,7 +200,7 @@ class _PhoneSignUpViewState extends State<PhoneSignUpView> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Image.asset(
-                                "assets/icons/google.png",
+                                "assets/icon/google.png",
                                 height: 40,
                               ),
                               Text(
@@ -234,7 +234,7 @@ class _PhoneSignUpViewState extends State<PhoneSignUpView> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Image.asset(
-                                "assets/icons/email.png",
+                                "assets/icon/email.png",
                                 height: 40,
                               ),
                               Text(

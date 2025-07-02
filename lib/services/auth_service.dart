@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mycards/auth/auth_screens/otp_verification_view.dart';
 import 'package:mycards/main.dart';
-import 'package:mycards/screens/bottom_navbar_screens/home_screen.dart';
+import 'package:mycards/screens/bottom_navbar_screens/home/home_screen.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();

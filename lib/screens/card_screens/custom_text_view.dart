@@ -60,7 +60,7 @@ class _CustomTextViewState extends State<CustomTextView> {
                       child: Text(
                         widget.toMessage,
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
@@ -78,7 +78,7 @@ class _CustomTextViewState extends State<CustomTextView> {
                       child: Text(
                         widget.fromMeassage,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
@@ -97,7 +97,7 @@ class _CustomTextViewState extends State<CustomTextView> {
                         widget.customMessage,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: Colors.black,
                         ),
