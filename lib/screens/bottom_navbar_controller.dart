@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:mycards/screens/bottom_navbar_screens/account_screen.dart';
-import 'package:mycards/screens/bottom_navbar_screens/categories/categories_screen.dart';
-import 'package:mycards/screens/bottom_navbar_screens/credits_screens.dart';
-import 'package:mycards/screens/bottom_navbar_screens/home/home_screen.dart';
+import 'package:mycards/features/categories/categories_screen.dart';
+import 'package:mycards/features/credits/credits_screens.dart';
+import 'package:mycards/features/home/home_screen.dart';
 import 'package:mycards/screens/bottom_navbar_screens/my_cards_screen.dart';
 
 class ScreenController extends StatefulWidget {

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/auth/auth_screens/phone_login_view.dart';
 import 'package:mycards/screens/profile_settings.dart';
 import 'package:mycards/screens/transaction_history.dart';
 import 'package:mycards/services/auth_service.dart';
+import 'package:mycards/features/auth/presentation/providers/user_providers.dart';
 
-class AccountScreen extends StatefulWidget {
+class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});
 
   @override
-  State<AccountScreen> createState() => _AccountScreenState();
+  ConsumerState<AccountScreen> createState() => _AccountScreenState();
 }
 
-class _AccountScreenState extends State<AccountScreen> {
+class _AccountScreenState extends ConsumerState<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,21 +43,58 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
           const SizedBox(height: 8),
           // User Name
-          const Text(
-            "Zak Edwards",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Consumer(
+            builder: (context, ref, child) {
+              final userAsync = ref.watch(currentUserProvider);
+              return userAsync.when(
+                data: (user) => Text(
+                  user?.name ?? user?.email ?? "User",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                loading: () => const CircularProgressIndicator(),
+                error: (error, stack) => const Text(
+                  "User",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 24),
           // Account Information
-          ListTile(
-            leading: const Icon(Icons.monetization_on, color: Colors.black),
-            title: const Text(
-              "Credit Balance : 6000",
-              style: TextStyle(fontSize: 16),
-            ),
+          Consumer(
+            builder: (context, ref, child) {
+              final creditBalanceAsync = ref.watch(userCreditBalanceProvider);
+              return creditBalanceAsync.when(
+                data: (balance) => ListTile(
+                  leading:
+                      const Icon(Icons.monetization_on, color: Colors.black),
+                  title: Text(
+                    "Credit Balance: $balance",
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+                loading: () => const ListTile(
+                  leading: Icon(Icons.monetization_on, color: Colors.black),
+                  title: Text(
+                    "Loading...",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                error: (error, stack) => const ListTile(
+                  leading: Icon(Icons.monetization_on, color: Colors.black),
+                  title: Text(
+                    "Credit Balance: 0",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.history, color: Colors.black),

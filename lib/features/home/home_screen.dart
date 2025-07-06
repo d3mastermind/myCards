@@ -33,7 +33,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Function to reset the search
   void _resetSearch() {
-    _searchController.clear();
+      _searchController.clear();
     ref.read(homeScreenViewModelProvider.notifier).resetSearch();
   }
 
@@ -154,82 +154,82 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       data: (templates) {
         if (homeState.filteredTemplates.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.search_off,
-                  color: Colors.grey,
-                  size: 64,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  templates.isEmpty
-                      ? 'No templates available'
-                      : 'No templates found',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  templates.isEmpty
-                      ? 'Check back later for new templates'
-                      : 'Try adjusting your search terms',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                if (templates.isEmpty) ...[
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _refreshTemplates,
-                    child: const Text('Refresh'),
-                  ),
-                ]
-              ],
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.search_off,
+              color: Colors.grey,
+              size: 64,
             ),
-          );
-        }
+            const SizedBox(height: 16),
+            Text(
+              templates.isEmpty
+                  ? 'No templates available'
+                  : 'No templates found',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              templates.isEmpty
+                  ? 'Check back later for new templates'
+                  : 'Try adjusting your search terms',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            if (templates.isEmpty) ...[
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _refreshTemplates,
+                child: const Text('Refresh'),
+              ),
+            ]
+          ],
+        ),
+      );
+    }
 
-        return RefreshIndicator(
-          onRefresh: _refreshTemplates,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return RefreshIndicator(
+      onRefresh: _refreshTemplates,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Popular Categories",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Text(
-                    "Popular Categories",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
                       GestureDetector(
                         onTap: () => _filterByCategory("Birthday"),
                         child: CategoryItem(
-                            label: "Birthday",
-                            icon: Icons.cake,
-                            color: Colors.orange),
+                      label: "Birthday",
+                      icon: Icons.cake,
+                      color: Colors.orange),
                       ),
                       GestureDetector(
                         onTap: () => _filterByCategory("Wedding"),
                         child: CategoryItem(
-                            label: "Wedding",
-                            icon: Icons.favorite,
-                            color: Colors.pink),
+                      label: "Wedding",
+                      icon: Icons.favorite,
+                      color: Colors.pink),
                       ),
                       GestureDetector(
                         onTap: () => _filterByCategory("Christmas"),
                         child: CategoryItem(
-                            label: "Christmas",
-                            icon: Icons.square,
-                            color: Colors.green),
+                      label: "Christmas",
+                      icon: Icons.square,
+                      color: Colors.green),
                       ),
                       GestureDetector(
                         onTap: () => _filterByCategory("Ramadan"),
@@ -238,32 +238,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             icon: Icons.star,
                             color: Colors.purple),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
+                ],
+              ),
+              const SizedBox(height: 16),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 0,
-                      mainAxisSpacing: 0,
-                      childAspectRatio: 0.5,
-                    ),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 0,
+                  mainAxisSpacing: 0,
+                  childAspectRatio: 0.5,
+                ),
                     itemCount: homeState.filteredTemplates.length,
-                    itemBuilder: (context, index) {
+                itemBuilder: (context, index) {
                       final template = homeState.filteredTemplates[index];
                       // Convert TemplateEntity to Map for backward compatibility
                       final templateMap = _templateEntityToMap(template);
-                      return CardTemplate(template: templateMap);
-                    },
-                  ),
-                ],
+                  return CardTemplate(template: templateMap);
+                },
               ),
-            ),
+            ],
           ),
-        );
+        ),
+      ),
+    );
       },
     );
   }

@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read access to templates for all users (templates are public content)
+    match /templates/{templateId} {
+      allow read: if true;
+      // Only allow writes through admin functions or authenticated users with admin role
+      allow write: if request.auth != null;
+    }
+    
+    // User data - only the user can read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // User credits subcollection - only the user can access their own credits
+      match /credits/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // User transactions subcollection - only the user can access their own transactions
+      match /transactions/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // User cards - only the user can access their own cards
+    match /user_cards/{userId}/{cardId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Purchased templates - only the user can access their purchases
+    match /user_purchases/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Default deny all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+} 

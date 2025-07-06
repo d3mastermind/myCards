@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mycards/auth/auth_screens/otp_verification_view.dart';
 import 'package:mycards/main.dart';
-import 'package:mycards/screens/bottom_navbar_screens/home/home_screen.dart';
+import 'package:mycards/services/user_service.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -30,8 +30,22 @@ class AuthService {
 
   // Email and password sign up
   Future<UserCredential> signUpWithEmail(String email, String password) async {
-    return await _auth.createUserWithEmailAndPassword(
-        email: email, password: password);
+    final UserCredential userCredential = await _auth
+        .createUserWithEmailAndPassword(email: email, password: password);
+
+    // Create user document in Firestore
+    try {
+      await UserService().createUserDocument(
+        email: email,
+        phoneNumber: null,
+        name: null,
+      );
+    } catch (e) {
+      print('Error creating user document during email signup: $e');
+      // Don't throw here to avoid breaking the signup flow
+    }
+
+    return userCredential;
   }
 
   // Email and password sign in
@@ -61,7 +75,23 @@ class AuthService {
       phoneNumber: phoneNumber,
       verificationCompleted: (PhoneAuthCredential credential) async {
         // Sign in the user
-        await _auth.signInWithCredential(credential);
+        final UserCredential userCredential =
+            await _auth.signInWithCredential(credential);
+
+        // Create user document in Firestore
+        try {
+          final User? user = userCredential.user;
+          if (user != null) {
+            await UserService().createUserDocument(
+              email: user.email ?? '',
+              phoneNumber: phoneNumber,
+              name: user.displayName,
+            );
+          }
+        } catch (e) {
+          print('Error creating user document during phone signup: $e');
+        }
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => MyApp()),
@@ -90,17 +120,53 @@ class AuthService {
 
   Future<UserCredential> signUpWithCredential(
       PhoneAuthCredential credential) async {
-    return await _auth.signInWithCredential(credential);
+    final UserCredential userCredential =
+        await _auth.signInWithCredential(credential);
+
+    // Create user document in Firestore if it's a new user
+    try {
+      final User? user = userCredential.user;
+      if (user != null) {
+        await UserService().createUserDocument(
+          email: user.email ?? '',
+          phoneNumber: user.phoneNumber,
+          name: user.displayName,
+        );
+      }
+    } catch (e) {
+      print('Error creating user document during credential signup: $e');
+      // Don't throw here to avoid breaking the signup flow
+    }
+
+    return userCredential;
   }
 
   Future<UserCredential> signUpWithGoogle() async {
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
     final GoogleSignInAuthentication? googleAuth =
         await googleUser?.authentication;
-    return await _auth.signInWithCredential(GoogleAuthProvider.credential(
+    final UserCredential userCredential =
+        await _auth.signInWithCredential(GoogleAuthProvider.credential(
       accessToken: googleAuth?.accessToken,
       idToken: googleAuth?.idToken,
     ));
+
+    // Create user document in Firestore if it's a new user
+    try {
+      final User? user = userCredential.user;
+      if (user != null) {
+        await UserService().createUserDocument(
+          email: user.email ?? '',
+          phoneNumber: user.phoneNumber,
+          name: user.displayName,
+        );
+      }
+    } catch (e) {
+      print('Error creating user document during Google signup: $e');
+      // Don't throw here to avoid breaking the signup flow
+    }
+
+    return userCredential;
   }
 
   Future<UserCredential> signInWithGoogle() async {
