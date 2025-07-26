@@ -41,9 +41,9 @@ class CategoriesScreenViewModel extends StateNotifier<CategoriesScreenState> {
             filteredCategories: categoryList,
             searchQuery: ''));
 
-  // Get current templates state directly from provider
+  // Get current templates state from background provider (all templates)
   AsyncValue<List<TemplateEntity>> get templatesState =>
-      ref.read(allTemplatesProvider);
+      ref.read(allTemplatesBackgroundProvider);
 
   // Get filtered categories based on available templates
   List<Map<String, dynamic>> get availableCategories {
@@ -120,7 +120,7 @@ class CategoriesScreenViewModel extends StateNotifier<CategoriesScreenState> {
   }
 
   Future<void> refreshTemplates() async {
-    await ref.read(allTemplatesProvider.notifier).refresh();
+    await ref.read(allTemplatesBackgroundProvider.notifier).refresh();
   }
 }
 

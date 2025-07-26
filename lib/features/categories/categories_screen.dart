@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/widgets/template_grid_view.dart';
-import 'package:mycards/features/templates/presentation/providers/all_templates.dart';
+import 'package:mycards/features/templates/presentation/providers/all_templates_pg.dart';
 import 'vm_categories_screen.dart';
 
 class CategoriesScreen extends ConsumerStatefulWidget {

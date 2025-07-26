@@ -1,19 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:mycards/screens/bottom_navbar_screens/account_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mycards/features/account/account_screen.dart';
 import 'package:mycards/features/categories/categories_screen.dart';
 import 'package:mycards/features/credits/credits_screens.dart';
 import 'package:mycards/features/home/home_screen.dart';
-import 'package:mycards/screens/bottom_navbar_screens/my_cards_screen.dart';
+import 'package:mycards/features/my_cards/presentation/screens/my_cards_screen.dart';
+import 'package:mycards/features/templates/presentation/providers/all_templates.dart';
 
-class ScreenController extends StatefulWidget {
+class ScreenController extends ConsumerStatefulWidget {
   const ScreenController({super.key});
 
   @override
-  ScreenControllerState createState() => ScreenControllerState();
+  ConsumerState<ScreenController> createState() => ScreenControllerState();
 }
 
-class ScreenControllerState extends State<ScreenController> {
+class ScreenControllerState extends ConsumerState<ScreenController> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize both template providers once when app starts
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Load paginated templates for UI
+      ref.read(allTemplatesProvider);
+      // Load all templates in background
+      ref.read(allTemplatesBackgroundProvider);
+    });
+  }
+
   int currentIndex = 2;
 
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();

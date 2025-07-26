@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "781667469773-s6dguf19g4rn3tmkrqbaakhep5m1gejv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mind.mycards",
+            "certificate_hash": "3e676ab3da41fb82b88a6612a3325acbb4054d31"
+          }
+        },
+        {
           "client_id": "781667469773-arvirhskt85b3763to42h3clvcdf7nsk.apps.googleusercontent.com",
           "client_type": 3
         }

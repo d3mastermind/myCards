@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/features/credits/data/transaction_entiity.dart';
 import 'package:mycards/features/credits/data/credits_repository.dart';
 import 'package:mycards/features/credits/domain/credits_repository_impl.dart';
-import 'package:mycards/services/auth_service.dart';
+import 'package:mycards/features/home/services/auth_service.dart';
 
 class CreditState {
   final AsyncValue<int> creditBalance;

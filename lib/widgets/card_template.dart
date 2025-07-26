@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:mycards/screens/pre_edit_card_screens/pre_edit_card_preview_page.dart';
+import 'package:mycards/features/pre_edit_card_screens/pre_edit_card_preview_page.dart';
 
 class CardTemplate extends StatefulWidget {
   const CardTemplate({

@@ -1,28 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mycards/features/auth/domain/entities/user_entity.dart';
 
-class UserModel {
-  final String userId;
-  final String email;
-  final String? phoneNumber;
-  final String? name;
-  final int creditBalance;
-  final List<String> purchasedCards;
-  final List<String> likedCards;
-  final List<String> receivedCards;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
+class UserModel extends UserEntity {
   UserModel({
-    required this.userId,
-    required this.email,
-    this.phoneNumber,
-    this.name,
-    this.creditBalance = 10, // Default credit balance
-    this.purchasedCards = const [],
-    this.likedCards = const [],
-    this.receivedCards = const [],
-    required this.createdAt,
-    required this.updatedAt,
+    required super.userId,
+    required super.email,
+    super.phoneNumber,
+    super.name,
+    super.creditBalance = 10, // Default credit balance
+    super.purchasedCards = const [],
+    super.likedCards = const [],
+    super.receivedCards = const [],
+    required super.createdAt,
+    required super.updatedAt,
   });
 
   // Factory method to create an instance from Firestore data
