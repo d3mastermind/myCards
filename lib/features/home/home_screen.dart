@@ -426,7 +426,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     itemBuilder: (context, index) {
                       final template = homeState.filteredTemplates[index];
                       final templateMap = _templateEntityToMap(template);
-                      return CardTemplate(template: templateMap);
+                      return CardTemplate(
+                        template: templateMap,
+                        key: ValueKey(
+                          template.templateId,
+                        ),
+                      );
                     },
                   ),
                   if (homeState.isLoadingMore)

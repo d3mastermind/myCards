@@ -55,11 +55,22 @@ class _CardTemplateState extends State<CardTemplate> {
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
-                        placeholder: (context, url) => const Center(
-                          child: CircularProgressIndicator(),
+                        memCacheWidth: 400, // Optimize memory usage
+                        memCacheHeight: 400,
+                        maxWidthDiskCache: 400,
+                        maxHeightDiskCache: 400,
+                        cacheKey:
+                            widget.template["templateId"], // Custom cache key
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
                         ),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.error),
+                        ),
                       ),
                     ),
                     // Premium icon

@@ -32,6 +32,7 @@ class ScreenControllerState extends ConsumerState<ScreenController> {
 
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
 
+  // Create screens once and keep them alive
   final List<Widget> screens = [
     CategoriesScreen(),
     MyCardsScreen(),
@@ -43,7 +44,10 @@ class ScreenControllerState extends ConsumerState<ScreenController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: screens[currentIndex],
+      body: IndexedStack(
+        index: currentIndex,
+        children: screens,
+      ),
       bottomNavigationBar: CurvedNavigationBar(
         key: _bottomNavigationKey,
         index: currentIndex,

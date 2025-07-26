@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mycards/features/auth/presentation/verify_email/email_verify_view.dart';
 import 'package:mycards/features/auth/presentation/phone_login/phone_login_view.dart';
 import 'package:mycards/screens/bottom_navbar_controller.dart';
@@ -15,6 +16,12 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Configure global image cache settings
+  PaintingBinding.instance.imageCache.maximumSize =
+      1000; // Increase memory cache
+  PaintingBinding.instance.imageCache.maximumSizeBytes =
+      100 << 20; // 100MB cache
 
   // FIRST TIME SETUP: Uncomment the line below to populate Firestore with initial template data
   //await TemplatePopulator.populateTemplates();

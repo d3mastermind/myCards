@@ -4,7 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mycards/class/template.dart';
+import 'package:mycards/features/templates/data/models/template_model.dart';
+import 'package:mycards/features/templates/domain/entities/template_entity.dart';
 
 class AssetUploadService {
   static final AssetUploadService _instance = AssetUploadService._internal();
@@ -196,7 +197,7 @@ class AssetUploadService {
       'successful': 0,
       'failed': 0,
       'errors': <String>[],
-      'templates': <Template>[],
+      'templates': <TemplateEntity>[],
     };
 
     int totalAssets = 0;
@@ -272,7 +273,7 @@ class AssetUploadService {
             final templateName = _generateTemplateName(fileName, category);
 
             // Create Template object
-            final template = Template(
+            final template = TemplateEntity(
               templateId: templateId,
               name: templateName,
               category: category,
@@ -285,7 +286,7 @@ class AssetUploadService {
             await _firestore
                 .collection('templates')
                 .doc(templateId)
-                .set(template.toMap());
+                .set((template as TemplateModel).toMap());
             print('Firestore document created: $templateId');
 
             results['successful']++;
