@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mycards/features/liked_cards/liked_card_provider.dart';
 import 'package:mycards/features/pre_edit_card_screens/pre_edit_card_preview_page.dart';
 
-class CardTemplate extends StatefulWidget {
+class CardTemplate extends ConsumerWidget {
   const CardTemplate({
     super.key,
     required this.template,
@@ -11,20 +13,18 @@ class CardTemplate extends StatefulWidget {
   final Map<String, dynamic> template;
 
   @override
-  State<CardTemplate> createState() => _CardTemplateState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch if this card is liked
+    final isLiked = ref.watch(isCardLikedProvider(template["templateId"]));
+    final likedCardsNotifier = ref.read(likedCardsProvider.notifier);
 
-class _CardTemplateState extends State<CardTemplate> {
-  @override
-  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        print("Tapped on template ${widget.template["templateId"]}");
+        print("Tapped on template ${template["templateId"]}");
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) =>
-                  PreEditCardPreviewPage(template: widget.template)),
+              builder: (context) => PreEditCardPreviewPage(template: template)),
         );
       },
       child: Padding(
@@ -51,7 +51,8 @@ class _CardTemplateState extends State<CardTemplate> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: CachedNetworkImage(
-                        imageUrl: widget.template["frontCover"],
+                        key: ValueKey(template["templateId"]), // Stable key
+                        imageUrl: template["frontCover"],
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
@@ -59,8 +60,7 @@ class _CardTemplateState extends State<CardTemplate> {
                         memCacheHeight: 400,
                         maxWidthDiskCache: 400,
                         maxHeightDiskCache: 400,
-                        cacheKey:
-                            widget.template["templateId"], // Custom cache key
+                        cacheKey: template["templateId"], // Custom cache key
                         placeholder: (context, url) => Container(
                           color: Colors.grey[200],
                           child: const Center(
@@ -74,7 +74,7 @@ class _CardTemplateState extends State<CardTemplate> {
                       ),
                     ),
                     // Premium icon
-                    if (widget.template["ispremium"])
+                    if (template["ispremium"])
                       Positioned(
                         top: 8,
                         right: 8,
@@ -88,17 +88,23 @@ class _CardTemplateState extends State<CardTemplate> {
                           ),
                         ),
                       ),
-                    // Favorite icon
+                    // Favorite icon with toggle functionality
                     Positioned(
                       top: 8,
                       left: 8,
-                      child: CircleAvatar(
-                        backgroundColor: Colors.white,
-                        radius: 16,
-                        child: Icon(
-                          Icons.favorite_border,
-                          color: Colors.red,
-                          size: 20,
+                      child: GestureDetector(
+                        onTap: () {
+                          // Toggle like status
+                          likedCardsNotifier.toggleLike(template["templateId"]);
+                        },
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          radius: 16,
+                          child: Icon(
+                            isLiked ? Icons.favorite : Icons.favorite_border,
+                            color: isLiked ? Colors.red : Colors.red,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ),
@@ -111,7 +117,7 @@ class _CardTemplateState extends State<CardTemplate> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: Text(
-                widget.template["name"],
+                template["name"],
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,

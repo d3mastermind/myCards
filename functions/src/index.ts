@@ -60,7 +60,6 @@ export const onUserCreated = functions.runWith({
     creditBalance: 10,
     purchasedCards: [],
     likedCards: [],
-    receivedCards: [],
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
@@ -72,6 +71,10 @@ export const onUserCreated = functions.runWith({
     balance: 10,
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
+
+  // Create receivedCards subcollection (empty collection)
+  // Each document in this collection will represent a received card
+  // with its own properties like cardId, senderId, receivedAt, etc.
 
   // Create initial transaction record
   await userDocRef.collection("transactions").add({

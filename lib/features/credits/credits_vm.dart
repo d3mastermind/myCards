@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/features/credits/data/transaction_entiity.dart';
-import 'package:mycards/features/credits/data/credits_repository.dart';
-import 'package:mycards/features/credits/domain/credits_repository_impl.dart';
+import 'package:mycards/features/credits/domain/credits_repository.dart';
+import 'package:mycards/features/credits/data/credits_repository_impl.dart';
 import 'package:mycards/features/home/services/auth_service.dart';
 
 class CreditState {
@@ -92,6 +92,28 @@ class CreditNotifier extends StateNotifier<CreditState> {
     } catch (error, stackTrace) {
       state = state.copyWith(
           transactionHistory: AsyncValue.error(error, stackTrace));
+    }
+  }
+
+  // Purchase card
+  Future<bool> purchaseCard(int amount) async {
+    final userId = _currentUserId;
+    if (userId == null) {
+      return false;
+    }
+
+    try {
+      final success = await _repository.purchaseCard(userId, amount);
+
+      if (success) {
+        // Reload credit balance after successful purchase
+        await loadCreditBalance();
+        await loadTransactionHistory();
+      }
+
+      return success;
+    } catch (error, stackTrace) {
+      return false;
     }
   }
 
@@ -202,6 +224,15 @@ final creditsNotifierProvider =
 // Convenience providers for specific state parts
 final creditBalanceProvider = Provider<AsyncValue<int>>((ref) {
   return ref.watch(creditsNotifierProvider).creditBalance;
+});
+
+final creditBalanceValueProvider = Provider<int>((ref) {
+  final balanceAsync = ref.watch(creditsNotifierProvider).creditBalance;
+  return balanceAsync.when(
+    data: (balance) => balance,
+    loading: () => 0,
+    error: (error, stack) => 0,
+  );
 });
 
 final transactionHistoryProvider =

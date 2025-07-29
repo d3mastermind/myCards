@@ -81,6 +81,7 @@ class _PreEdit4thPageState extends State<PreEdit4thPage> {
                         ),
                         // Soundwave Animation
                         Lottie.asset(
+                          width: 100,
                           "assets/animations/soundwave.json",
                           repeat: true,
                           animate: isPlaying,

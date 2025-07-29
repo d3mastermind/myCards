@@ -19,7 +19,8 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
           await firestore.collection(_collection).doc(userId).get();
 
       if (doc.exists) {
-        return UserModel.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+        return UserModel.fromFirebase(
+            doc.id, doc.data() as Map<String, dynamic>);
       }
       return null;
     } catch (e) {

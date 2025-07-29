@@ -1,0 +1,163 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mycards/features/app_user/app_user_provider.dart';
+
+class LikedCardsNotifier extends StateNotifier<List<String>> {
+  final Ref _ref;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  bool _isInitialized = false;
+
+  LikedCardsNotifier(this._ref) : super([]) {
+    // Don't load immediately, wait for user to be available
+    _initializeWhenUserAvailable();
+  }
+
+  // Get current user ID from app user provider
+  String? get _currentUserId {
+    final appUser = _ref.read(appUserProvider);
+    return appUser?.userId;
+  }
+
+  // Initialize when user becomes available
+  void _initializeWhenUserAvailable() {
+    // Check if user is already available
+    final currentUser = _ref.read(appUserProvider);
+    if (currentUser != null && !_isInitialized) {
+      _isInitialized = true;
+      _loadLikedCards();
+      return;
+    }
+
+    // Watch for user changes and load liked cards when user is available
+    _ref.listen(appUserProvider, (previous, next) {
+      if (next != null && !_isInitialized) {
+        _isInitialized = true;
+        _loadLikedCards();
+      } else if (next == null) {
+        // User logged out, clear state
+        _isInitialized = false;
+        state = [];
+      }
+    });
+  }
+
+  // Load liked cards from Firestore
+  Future<void> _loadLikedCards() async {
+    try {
+      final userId = _currentUserId;
+      if (userId == null) {
+        print('No user available for loading liked cards');
+        state = [];
+        return;
+      }
+
+      print('Loading liked cards for user: $userId');
+      final doc = await _firestore.collection('users').doc(userId).get();
+
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        final likedCards = List<String>.from(data['likedCards'] ?? []);
+        print('Loaded ${likedCards.length} liked cards: $likedCards');
+        state = likedCards;
+      } else {
+        print('No user document found or no liked cards');
+        state = [];
+      }
+    } catch (e) {
+      print('Error loading liked cards: $e');
+      state = [];
+    }
+  }
+
+  // Toggle like status for a card
+  Future<void> toggleLike(String cardId) async {
+    try {
+      final userId = _currentUserId;
+      if (userId == null) {
+        print('User not authenticated');
+        return;
+      }
+
+      // Update local state first
+      final currentLikedCards = List<String>.from(state);
+      final isCurrentlyLiked = currentLikedCards.contains(cardId);
+
+      if (isCurrentlyLiked) {
+        // Remove from liked cards
+        currentLikedCards.remove(cardId);
+        print('Removed card $cardId from liked cards');
+      } else {
+        // Add to liked cards
+        currentLikedCards.add(cardId);
+        print('Added card $cardId to liked cards');
+      }
+
+      // Update local state immediately
+      state = currentLikedCards;
+
+      // Update Firestore
+      await _firestore.collection('users').doc(userId).update({
+        'likedCards': currentLikedCards,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      print('Updated Firestore with liked cards: $currentLikedCards');
+    } catch (e) {
+      print('Error toggling like: $e');
+      // Revert local state on error
+      await _loadLikedCards();
+    }
+  }
+
+  // Check if a card is liked
+  bool isLiked(String cardId) {
+    return state.contains(cardId);
+  }
+
+  // Get all liked card IDs
+  List<String> get likedCardIds => state;
+
+  // Refresh liked cards from Firestore
+  Future<void> refresh() async {
+    print('Refreshing liked cards...');
+    await _loadLikedCards();
+  }
+
+  // Clear all liked cards
+  Future<void> clearLikedCards() async {
+    try {
+      final userId = _currentUserId;
+      if (userId == null) return;
+
+      // Update local state first
+      state = [];
+
+      // Clear from Firestore
+      await _firestore.collection('users').doc(userId).update({
+        'likedCards': [],
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error clearing liked cards: $e');
+      await _loadLikedCards(); // Revert on error
+    }
+  }
+
+  // Force load liked cards (useful for manual refresh)
+  Future<void> forceLoad() async {
+    print('Force loading liked cards...');
+    await _loadLikedCards();
+  }
+}
+
+// Provider for liked cards
+final likedCardsProvider =
+    StateNotifierProvider<LikedCardsNotifier, List<String>>(
+  (ref) => LikedCardsNotifier(ref),
+);
+
+// Convenience provider to check if a specific card is liked
+final isCardLikedProvider = Provider.family<bool, String>((ref, cardId) {
+  final likedCards = ref.watch(likedCardsProvider);
+  return likedCards.contains(cardId);
+});

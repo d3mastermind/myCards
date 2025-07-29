@@ -9,6 +9,7 @@ class UserEntity {
   final List<String> receivedCards;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? profileImageUrl;
 
   UserEntity({
     required this.userId,
@@ -21,6 +22,7 @@ class UserEntity {
     this.receivedCards = const [],
     required this.createdAt,
     required this.updatedAt,
+    this.profileImageUrl,
   });
 
 
@@ -36,6 +38,7 @@ class UserEntity {
     List<String>? receivedCards,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? profileImageUrl,
   }) {
     return UserEntity(
       userId: userId ?? this.userId,
@@ -48,6 +51,7 @@ class UserEntity {
       receivedCards: receivedCards ?? this.receivedCards,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
     );
   }
 }

@@ -13,12 +13,13 @@ class UserModel extends UserEntity {
     super.receivedCards = const [],
     required super.createdAt,
     required super.updatedAt,
+    super.profileImageUrl,
   });
 
-  // Factory method to create an instance from Firestore data
-  factory UserModel.fromMap(String id, Map<String, dynamic> data) {
+  // Factory method to create an instance from data
+  factory UserModel.fromMap( Map<String, dynamic> data) {
     return UserModel(
-      userId: id,
+      userId: data['userId'],
       email: data['email'] ?? '',
       phoneNumber: data['phoneNumber'],
       name: data['name'],
@@ -28,6 +29,24 @@ class UserModel extends UserEntity {
       receivedCards: List<String>.from(data['receivedCards'] ?? []),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      profileImageUrl: data['profileImageUrl'],
+    );
+  }
+
+  // Factory method to create from Firebase with separate userId and data map
+  factory UserModel.fromFirebase(String userId, Map<String, dynamic> data) {
+    return UserModel(
+      userId: userId,
+      email: data['email'] ?? '',
+      phoneNumber: data['phoneNumber'],
+      name: data['name'],
+      creditBalance: data['creditBalance'] ?? 10,
+      purchasedCards: List<String>.from(data['purchasedCards'] ?? []),
+      likedCards: List<String>.from(data['likedCards'] ?? []),
+      receivedCards: List<String>.from(data['receivedCards'] ?? []),
+      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      profileImageUrl: data['profileImageUrl'],
     );
   }
 
@@ -43,6 +62,7 @@ class UserModel extends UserEntity {
       'receivedCards': receivedCards,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
+      'profileImageUrl': profileImageUrl,
     };
   }
 
@@ -58,6 +78,7 @@ class UserModel extends UserEntity {
     List<String>? receivedCards,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? profileImageUrl,
   }) {
     return UserModel(
       userId: userId ?? this.userId,
@@ -70,7 +91,7 @@ class UserModel extends UserEntity {
       receivedCards: receivedCards ?? this.receivedCards,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
     );
   }
 }
- 

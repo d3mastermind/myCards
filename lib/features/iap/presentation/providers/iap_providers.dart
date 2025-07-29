@@ -4,7 +4,7 @@ import 'package:mycards/features/iap/data/datasources/iap_datasource.dart';
 import 'package:mycards/features/iap/domain/services/iap_service.dart';
 import 'package:mycards/features/iap/domain/entities/purchase_product.dart';
 import 'package:mycards/features/iap/domain/entities/purchase_result.dart';
-import 'package:mycards/features/credits/domain/credits_repository_impl.dart';
+import 'package:mycards/features/credits/data/credits_repository_impl.dart';
 import 'package:mycards/features/home/services/auth_service.dart';
 
 /// Provider for IAP data source
