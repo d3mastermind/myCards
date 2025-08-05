@@ -16,29 +16,41 @@ class TemplatesRepositoryImpl implements TemplatesRepository {
   Future<List<TemplateModel>> getAllTemplates(
       {int limit = 20, String? startAfterId}) async {
     try {
-      log("[TemplatesRepositoryImpl] Fetching templates with pagination");
+      log("[TemplatesRepositoryImpl] Fetching templates");
       Query query = firestore.collection(_collection).orderBy('name');
 
-      // If startAfterId is null, load all templates without pagination
-      if (startAfterId == null) {
+      // If startAfterId is null and limit is large (1000+), load all templates
+      if (startAfterId == null && limit >= 1000) {
         log("[TemplatesRepositoryImpl] Loading all templates without pagination");
         final QuerySnapshot snapshot = await query.get();
-        return snapshot.docs
+        final templates = snapshot.docs
             .map((doc) => TemplateModel.fromMap(
                 doc.id, doc.data() as Map<String, dynamic>))
             .toList();
+        log("[TemplatesRepositoryImpl] Loaded ${templates.length} templates (all)");
+        return templates;
       }
 
-      // Apply pagination
+      // Apply pagination for normal requests
       query = query.limit(limit);
-      final DocumentSnapshot startAfterDoc =
-          await firestore.collection(_collection).doc(startAfterId).get();
-      query = query.startAfterDocument(startAfterDoc);
+
+      if (startAfterId != null) {
+        log("[TemplatesRepositoryImpl] Loading templates after ID: $startAfterId");
+        final DocumentSnapshot startAfterDoc =
+            await firestore.collection(_collection).doc(startAfterId).get();
+        query = query.startAfterDocument(startAfterDoc);
+      } else {
+        log("[TemplatesRepositoryImpl] Loading first page of templates");
+      }
+
       final QuerySnapshot snapshot = await query.get();
-      return snapshot.docs
+      final templates = snapshot.docs
           .map((doc) =>
               TemplateModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
           .toList();
+
+      log("[TemplatesRepositoryImpl] Loaded ${templates.length} templates (paginated)");
+      return templates;
     } catch (e) {
       log("[TemplatesRepositoryImpl] Error fetching templates: $e");
       throw Exception('Failed to fetch templates: $e');

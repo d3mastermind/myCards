@@ -1,14 +1,13 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mycards/providers/card_data_provider.dart';
+import 'package:mycards/features/edit_screens/card_data_provider.dart';
 import 'package:mycards/features/card_screens/card_page_view.dart';
+import 'package:mycards/features/credits/credits_vm.dart';
 
 class SendCardCreditsScreen extends ConsumerStatefulWidget {
-  final int currentBalance;
   const SendCardCreditsScreen({
     super.key,
-    required this.currentBalance,
   });
 
   @override
@@ -28,9 +27,9 @@ class _SendCardCreditsScreenState extends ConsumerState<SendCardCreditsScreen> {
 
     // Get initial credits from provider if available
     final cardData = ref.read(cardEditingProvider);
-    if (cardData.creditsAttached != null) {
-      _selectedCredits = cardData.creditsAttached!;
-      _creditsController.text = (cardData.creditsAttached! - 10).toString();
+    if (cardData.creditsAttached > 0) {
+      _selectedCredits = cardData.creditsAttached;
+      _creditsController.text = (cardData.creditsAttached - 10).toString();
     }
   }
 
@@ -51,7 +50,8 @@ class _SendCardCreditsScreenState extends ConsumerState<SendCardCreditsScreen> {
   }
 
   void _incrementCredits() {
-    if (_selectedCredits < widget.currentBalance) {
+    final currentBalance = ref.read(creditBalanceValueProvider);
+    if (_selectedCredits < currentBalance) {
       setState(() {
         _selectedCredits++;
         _creditsController.text = (_selectedCredits - 10).toString();
@@ -71,62 +71,83 @@ class _SendCardCreditsScreenState extends ConsumerState<SendCardCreditsScreen> {
     }
   }
 
-  bool get _isContinueButtonEnabled {
-    return _selectedCredits >= 10 && _selectedCredits <= widget.currentBalance;
+  bool _isContinueButtonEnabled(int currentBalance) {
+    return _selectedCredits >= 10 && _selectedCredits <= currentBalance;
   }
 
-  void _handleFinishAndPreview() {
+  void _handleFinishAndPreview() async {
     final cardData = ref.read(cardEditingProvider);
-    // if (cardData == null) {
-    //   // Show error if no card data exists
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(content: Text('Error: Card data not found')),
-    //   );
-    //   return;
-    // }
 
-    // Create final CardData object with all previous data plus credits
-    final finalCardData = cardData.copyWith(
-      creditsAttached: _selectedCredits,
-    );
-    if (finalCardData.creditsAttached == null ||
-        finalCardData.to == null ||
-        finalCardData.from == null ||
-        finalCardData.greeting == null) {
+    // Validate required fields
+    if (cardData.toName == null ||
+        cardData.fromName == null ||
+        cardData.greetingMessage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: please fill all fields')),
+        const SnackBar(
+          content: Text(
+              'Please fill in all required fields (To, From, and Greeting)'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
 
-    // Navigate to preview
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CardPageView(cardData: finalCardData),
-      ),
-    );
+    try {
+      // Update credits in provider
+      ref.read(cardEditingProvider.notifier).updateCredits(_selectedCredits);
+
+      // Save card to repository before preview
+      await ref.read(cardEditingProvider.notifier).saveCardToRepository();
+
+      // Navigate to preview
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CardPageView(cardData: cardData),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving card: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
-  void _handleSkip() {
+  void _handleSkip() async {
     final cardData = ref.read(cardEditingProvider);
-    if (cardData != null) {
+
+    try {
       // Update provider with default credits
       ref.read(cardEditingProvider.notifier).updateCredits(10);
 
+      // Save card to repository before preview
+      await ref.read(cardEditingProvider.notifier).saveCardToRepository();
+
       // Navigate to preview with default credits
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CardPageView(
-            cardData: cardData.copyWith(creditsAttached: 10),
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CardPageView(cardData: cardData),
           ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: Card data not found')),
-      );
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving card: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -134,140 +155,350 @@ class _SendCardCreditsScreenState extends ConsumerState<SendCardCreditsScreen> {
   Widget build(BuildContext context) {
     // Watch the provider for changes
     final cardData = ref.watch(cardEditingProvider);
+    final currentBalance = ref.watch(creditBalanceValueProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.grey.withAlpha(20),
-      appBar: AppBar(
-        leading: const SizedBox(),
-        title: const Text("Attach Credits to Card"),
-        backgroundColor: Colors.orange,
-      ),
-      body: Padding(
+    return Container(
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 8),
-              const Text(
-                "Give your card an extra special touch by attaching credits! The recipient will receive these credits after claiming the card.\n\n"
-                "To help you celebrate, there's also free credits to be added, courtesy of our team!",
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-              const SizedBox(height: 16),
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+        child: Column(
+          children: [
+            // Header Section
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFF3E0), Color(0xFFFFE0B2)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 16.0,
-                    horizontal: 24.0,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.orange.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Expanded(
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.card_giftcard,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
                         child: Text(
-                          "Your Credits Balance: ${widget.currentBalance}",
-                          style: const TextStyle(
-                            fontSize: 16,
+                          "Give your card an extra special touch!",
+                          style: TextStyle(
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: Color(0xFFE65100),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Navigate to Top-Up Screen
-                          print("Top-Up Credits");
-                        },
-                        child: const Text("Top Up"),
-                      ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "The recipient will receive these credits after claiming the card. To help you celebrate, there's also free credits to be added, courtesy of our team!",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF795548),
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Balance Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.green.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              const SizedBox(height: 24),
-              const Text(
-                "Enter Credits to Attach:",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Row(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    onPressed: _decrementCredits,
-                    icon: const Icon(Icons.remove_circle_outline),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Your Credits Balance",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "$currentBalance Credits",
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                      ),
+                    ),
+                    child: const Text(
+                      "Top Up",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Credits Input Section
+            const Text(
+              "Enter Credits to Attach:",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF424242),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: _decrementCredits,
+                      icon: const Icon(
+                        Icons.remove,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                   Expanded(
                     child: TextField(
                       controller: _creditsController,
                       keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
                       decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: "Enter additional credits",
+                        border: InputBorder.none,
+                        hintText: "0",
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                       onChanged: _updateSelectedCredits,
                     ),
                   ),
-                  IconButton(
-                    onPressed: _incrementCredits,
-                    icon: const Icon(Icons.add_circle_outline),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: _incrementCredits,
+                      icon: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              if (_selectedCredits >= 10)
-                Card(
-                  color: Colors.orange[50],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            ),
+            const SizedBox(height: 16),
+            // Credits Summary Card
+            if (_selectedCredits >= 10)
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFF8E1), Color(0xFFFFECB3)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "Credits to be Attached: ${_selectedCredits - 10} + 10",
-                            style: const TextStyle(fontSize: 16),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.orange.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.orange,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.card_giftcard,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Credits to be Attached",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF795548),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "${_selectedCredits - 10} + 10 = $_selectedCredits Credits",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFE65100),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            const Spacer(),
+            // Action Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: TextButton(
+                      onPressed: _handleSkip,
+                      style: TextButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.card_giftcard, color: Colors.black),
-                      ],
+                      ),
+                      child: const Text(
+                        "Skip",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF757575),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: TextButton(
-                      onPressed: _handleSkip,
-                      child: const Text("Skip"),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: _isContinueButtonEnabled(currentBalance)
+                            ? const [Color(0xFFFF5722), Color(0xFFFF7043)]
+                            : [Colors.grey[400]!, Colors.grey[400]!],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: _isContinueButtonEnabled(currentBalance)
+                          ? [
+                              BoxShadow(
+                                color: Colors.orange.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ]
+                          : null,
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Flexible(
-                    flex: 2,
                     child: ElevatedButton(
-                      onPressed: _isContinueButtonEnabled
+                      onPressed: _isContinueButtonEnabled(currentBalance)
                           ? _handleFinishAndPreview
                           : null,
-                      child: const Text("Finish and Preview"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        "Finish and Preview",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 16), // Bottom padding
-            ],
-          ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
         ),
       ),
     );

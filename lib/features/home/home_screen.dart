@@ -5,6 +5,8 @@ import 'package:mycards/widgets/category_item.dart';
 import 'package:mycards/features/templates/domain/entities/template_entity.dart';
 import 'package:mycards/features/templates/presentation/providers/all_templates.dart';
 import 'vm_home_screen.dart';
+import 'package:mycards/widgets/skeleton/home_skeleton_loader.dart';
+import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -30,7 +32,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200 &&
         homeState.hasMore &&
-        !homeState.isLoadingMore) {
+        !homeState.isLoadingMore &&
+        !homeState.usingBackgroundData) {
       ref.read(homeScreenViewModelProvider.notifier).loadMoreTemplates();
     }
   }
@@ -282,16 +285,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildBody(HomeScreenState homeState) {
     return homeState.templates.when(
-      loading: () => const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Loading templates...'),
-          ],
-        ),
-      ),
+      loading: () {
+        // Show existing templates if available, otherwise show skeleton
+        if (homeState.filteredTemplates.isNotEmpty) {
+          return _buildTemplatesList(homeState);
+        }
+        return const HomeSkeletonLoader();
+      },
       error: (error, stackTrace) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -359,109 +359,113 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           );
         }
 
-        return RefreshIndicator(
-          onRefresh: _refreshTemplates,
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        return _buildTemplatesList(homeState);
+      },
+    );
+  }
+
+  Widget _buildTemplatesList(HomeScreenState homeState) {
+    return RefreshIndicator(
+      onRefresh: _refreshTemplates,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Popular Categories",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Text(
-                    "Popular Categories",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+                  GestureDetector(
+                    onTap: () => _filterByCategory("Birthday"),
+                    child: CategoryItem(
+                        label: "Birthday",
+                        icon: Icons.cake,
+                        color: Colors.orange),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      GestureDetector(
-                        onTap: () => _filterByCategory("Birthday"),
-                        child: CategoryItem(
-                            label: "Birthday",
-                            icon: Icons.cake,
-                            color: Colors.orange),
-                      ),
-                      GestureDetector(
-                        onTap: () => _filterByCategory("Wedding"),
-                        child: CategoryItem(
-                            label: "Wedding",
-                            icon: Icons.favorite,
-                            color: Colors.pink),
-                      ),
-                      GestureDetector(
-                        onTap: () => _filterByCategory("Christmas"),
-                        child: CategoryItem(
-                            label: "Christmas",
-                            icon: Icons.square,
-                            color: Colors.green),
-                      ),
-                      GestureDetector(
-                        onTap: () => _filterByCategory("Ramadan"),
-                        child: CategoryItem(
-                            label: "Ramadan",
-                            icon: Icons.star,
-                            color: Colors.purple),
-                      ),
-                    ],
+                  GestureDetector(
+                    onTap: () => _filterByCategory("Wedding"),
+                    child: CategoryItem(
+                        label: "Wedding",
+                        icon: Icons.favorite,
+                        color: Colors.pink),
                   ),
-                  const SizedBox(height: 16),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 0,
-                      mainAxisSpacing: 0,
-                      childAspectRatio: 0.5,
-                    ),
-                    itemCount: homeState.filteredTemplates.length,
-                    itemBuilder: (context, index) {
-                      final template = homeState.filteredTemplates[index];
-                      final templateMap = _templateEntityToMap(template);
-                      return CardTemplate(
-                        template: templateMap,
-                        key: ValueKey(
-                          template.templateId,
-                        ),
-                      );
-                    },
+                  GestureDetector(
+                    onTap: () => _filterByCategory("Christmas"),
+                    child: CategoryItem(
+                        label: "Christmas",
+                        icon: Icons.square,
+                        color: Colors.green),
                   ),
-                  if (homeState.isLoadingMore)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                  if (homeState.hasMore && !homeState.isLoadingMore)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Center(
-                        child: ElevatedButton(
-                          onPressed: homeState.isLoadingMore
-                              ? null
-                              : () {
-                                  ref
-                                      .read(
-                                          homeScreenViewModelProvider.notifier)
-                                      .loadMoreTemplates();
-                                },
-                          child: const Text('Load More'),
-                        ),
-                      ),
-                    ),
+                  GestureDetector(
+                    onTap: () => _filterByCategory("Ramadan"),
+                    child: CategoryItem(
+                        label: "Ramadan",
+                        icon: Icons.star,
+                        color: Colors.purple),
+                  ),
                 ],
               ),
-            ),
+              const SizedBox(height: 16),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 0,
+                  mainAxisSpacing: 0,
+                  childAspectRatio: 0.5,
+                ),
+                itemCount: homeState.filteredTemplates.length,
+                itemBuilder: (context, index) {
+                  final template = homeState.filteredTemplates[index];
+                  final templateMap = _templateEntityToMap(template);
+                  return CardTemplate(
+                    template: templateMap,
+                    key: ValueKey(
+                      template.templateId,
+                    ),
+                  );
+                },
+              ),
+              if (homeState.isLoadingMore)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(child: CircularLoadingWidget()),
+                ),
+              if (homeState.hasMore &&
+                  !homeState.isLoadingMore &&
+                  !homeState.usingBackgroundData)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: ElevatedButton(
+                      onPressed: homeState.isLoadingMore
+                          ? null
+                          : () {
+                              ref
+                                  .read(homeScreenViewModelProvider.notifier)
+                                  .loadMoreTemplates();
+                            },
+                      child: const Text('Load More'),
+                    ),
+                  ),
+                ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 

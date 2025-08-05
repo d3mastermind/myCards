@@ -46,7 +46,6 @@ dependencies:
   firebase_core: ^3.10.1
   firebase_auth: ^5.4.1
   cloud_functions: ^5.6.1
-
   cloud_firestore: ^5.6.2
   firebase_storage: ^12.4.1
   firebase_dynamic_links: ^6.1.1
@@ -59,6 +58,9 @@ dependencies:
   equatable: ^2.0.5
   in_app_purchase: ^3.2.3
   hive_flutter: ^1.1.0
+  flutter_screenutil: ^5.9.0
+  shimmer: ^3.0.0
+  loading_indicator: ^3.1.1
 
 dev_dependencies:
   flutter_test:
@@ -88,24 +90,24 @@ flutter:
     - assets/animations/
     - assets/icon/
     - assets/audio/
-    - assets/cards/
-    - assets/cards/birthday/
-    - assets/cards/chinese_new_year/
-    - assets/cards/christmas/
-    - assets/cards/diwali/
-    - assets/cards/easter/
-    - assets/cards/fathers_day/
-    - assets/cards/good_friday/
-    - assets/cards/graduation/
-    - assets/cards/halloween/
-    - assets/cards/independence/
-    - assets/cards/mothers_day/
-    - assets/cards/new_year/
-    - assets/cards/others/
-    - assets/cards/ramadan/
-    - assets/cards/valentine/
-    - assets/cards/vesak_day/
-    - assets/cards/wedding/
+    # - assets/cards/
+    # - assets/cards/birthday/
+    # - assets/cards/chinese_new_year/
+    # - assets/cards/christmas/
+    # - assets/cards/diwali/
+    # - assets/cards/easter/
+    # - assets/cards/fathers_day/
+    # - assets/cards/good_friday/
+    # - assets/cards/graduation/
+    # - assets/cards/halloween/
+    # - assets/cards/independence/
+    # - assets/cards/mothers_day/
+    # - assets/cards/new_year/
+    # - assets/cards/others/
+    # - assets/cards/ramadan/
+    # - assets/cards/valentine/
+    # - assets/cards/vesak_day/
+    # - assets/cards/wedding/
     
   #   - images/a_dot_ham.jpeg
 

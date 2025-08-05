@@ -8,11 +8,12 @@ class VoiceMessageView extends StatefulWidget {
     super.key,
     required this.audioUrl,
     required this.bgImageUrl,
+    this.isUrl = false,
   });
 
   final String audioUrl;
   final String bgImageUrl;
-
+  final bool isUrl;
   @override
   State<VoiceMessageView> createState() => _VoiceMessageViewState();
 }
@@ -56,7 +57,9 @@ class _VoiceMessageViewState extends State<VoiceMessageView> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage(widget.bgImageUrl),
+            image: widget.isUrl
+                ? NetworkImage(widget.bgImageUrl)
+                : AssetImage(widget.bgImageUrl),
             fit: BoxFit.cover,
           ),
         ),

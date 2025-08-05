@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 import 'package:mycards/features/auth/presentation/verify_email/email_verify_view.dart';
 import 'package:mycards/features/auth/presentation/phone_login/phone_login_view.dart';
 import 'package:mycards/features/auth/presentation/phone_signup/phone_signup_view.dart';
@@ -8,6 +9,8 @@ import 'package:mycards/main.dart';
 import 'package:mycards/features/home/services/auth_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/features/auth/presentation/email_signup/email_signup_vm.dart';
+import 'package:mycards/core/utils/logger.dart';
+import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
 
 class EmailSignUpView extends ConsumerStatefulWidget {
   const EmailSignUpView({super.key});
@@ -27,33 +30,56 @@ class _EmailSignUpViewState extends ConsumerState<EmailSignUpView> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.listen<EmailSignUpState>(emailSignUpVMProvider, (previous, next) {
-        if (next.isSuccess) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const EmailVerifyView(),
-            ),
-          );
-        }
-      });
-    });
   }
 
   void _handleSignUp() {
+    AppLogger.log('EmailSignUpView: User initiated email signup',
+        tag: 'EmailSignUpView');
     if (_formKey.currentState!.validate()) {
+      AppLogger.log(
+          'EmailSignUpView: Form validation passed, proceeding with signup',
+          tag: 'EmailSignUpView');
       ref.read(emailSignUpVMProvider.notifier).signUp(email, password);
+    } else {
+      AppLogger.logWarning('EmailSignUpView: Form validation failed',
+          tag: 'EmailSignUpView');
     }
   }
 
   void _handleGoogleSignUp() {
+    AppLogger.log('EmailSignUpView: User initiated Google signup',
+        tag: 'EmailSignUpView');
     ref.read(emailSignUpVMProvider.notifier).signUpWithGoogle();
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(emailSignUpVMProvider);
+
+    // Listen to state changes in build method
+    ref.listen<EmailSignUpState>(emailSignUpVMProvider, (previous, next) {
+      if (next.isSuccess) {
+        AppLogger.logSuccess(
+            'EmailSignUpView: Signup successful, navigating to email verification',
+            tag: 'EmailSignUpView');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const EmailVerifyView(),
+          ),
+        );
+        // Clear success state after navigation
+        ref.read(emailSignUpVMProvider.notifier).clearSuccess();
+      } else if (next.isError && next.errorMessage.isNotEmpty) {
+        AppLogger.logError(
+            'EmailSignUpView: Signup failed: ${next.errorMessage}',
+            tag: 'EmailSignUpView');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage)),
+        );
+        ref.read(emailSignUpVMProvider.notifier).clearError();
+      }
+    });
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: Colors.white,
@@ -213,9 +239,16 @@ class _EmailSignUpViewState extends ConsumerState<EmailSignUpView> {
                                 ? SizedBox(
                                     height: 20,
                                     width: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
+                                    child: LoadingIndicator(
+                                      indicatorType:
+                                          Indicator.lineSpinFadeLoader,
+                                      colors: [
+                                        Colors.red,
+                                        Colors.orange,
+                                        Colors.redAccent,
+                                        Colors.orangeAccent
+                                      ],
+                                      //backgroundColor: Colors.white,
                                     ),
                                   )
                                 : Text(
@@ -282,9 +315,7 @@ class _EmailSignUpViewState extends ConsumerState<EmailSignUpView> {
                                   const SizedBox(
                                     height: 20,
                                     width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
+                                    child: CircularLoadingWidget(),
                                   )
                                 else
                                   Image.asset(

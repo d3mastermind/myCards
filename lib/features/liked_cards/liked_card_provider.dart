@@ -14,31 +14,19 @@ class LikedCardsNotifier extends StateNotifier<List<String>> {
 
   // Get current user ID from app user provider
   String? get _currentUserId {
-    final appUser = _ref.read(appUserProvider);
+    final appUser = AppUserService.instance.currentUser;
     return appUser?.userId;
   }
 
   // Initialize when user becomes available
   void _initializeWhenUserAvailable() {
     // Check if user is already available
-    final currentUser = _ref.read(appUserProvider);
+    final currentUser = AppUserService.instance.currentUser;
     if (currentUser != null && !_isInitialized) {
       _isInitialized = true;
       _loadLikedCards();
       return;
     }
-
-    // Watch for user changes and load liked cards when user is available
-    _ref.listen(appUserProvider, (previous, next) {
-      if (next != null && !_isInitialized) {
-        _isInitialized = true;
-        _loadLikedCards();
-      } else if (next == null) {
-        // User logged out, clear state
-        _isInitialized = false;
-        state = [];
-      }
-    });
   }
 
   // Load liked cards from Firestore

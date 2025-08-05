@@ -5,7 +5,7 @@ import 'package:mycards/features/templates/data/repositories/template_repository
 import '../../domain/entities/template_entity.dart';
 import '../../domain/repositories/template_repository.dart';
 
-// Paginated provider for UI
+// Paginated provider for UI (used by HomeScreen)
 class AllTemplates extends StateNotifier<AsyncValue<List<TemplateEntity>>> {
   final TemplatesRepository _repository;
 
@@ -109,7 +109,7 @@ class AllTemplates extends StateNotifier<AsyncValue<List<TemplateEntity>>> {
   bool getIsLoadingMore() => _isLoadingMore;
 }
 
-// Background provider that loads all templates without pagination
+// Background provider that loads all templates without pagination (used by CategoriesScreen and others)
 class AllTemplatesBackground
     extends StateNotifier<AsyncValue<List<TemplateEntity>>> {
   final TemplatesRepository _repository;
@@ -174,14 +174,14 @@ class AllTemplatesBackground
   }
 }
 
-// Paginated provider for UI
+// Paginated provider for UI (HomeScreen)
 final allTemplatesProvider =
     StateNotifierProvider<AllTemplates, AsyncValue<List<TemplateEntity>>>(
         (ref) {
   return AllTemplates(repository: ref.read(templateRepositoryProvider));
 });
 
-// Background provider for loading all templates
+// Background provider for loading all templates (CategoriesScreen and others)
 final allTemplatesBackgroundProvider = StateNotifierProvider<
     AllTemplatesBackground, AsyncValue<List<TemplateEntity>>>((ref) {
   return AllTemplatesBackground(

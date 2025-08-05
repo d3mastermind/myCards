@@ -1,16 +1,21 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mycards/features/liked_cards/liked_card_provider.dart';
+import 'package:mycards/features/my_cards/presentation/providers/my_cards_screen_vm.dart';
 import 'package:mycards/features/pre_edit_card_screens/pre_edit_card_preview_page.dart';
+import 'package:mycards/widgets/skeleton/image_skeleton.dart';
 
 class CardTemplate extends ConsumerWidget {
   const CardTemplate({
     super.key,
     required this.template,
+    this.onTap,
   });
 
   final Map<String, dynamic> template;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -19,37 +24,47 @@ class CardTemplate extends ConsumerWidget {
     final likedCardsNotifier = ref.read(likedCardsProvider.notifier);
 
     return GestureDetector(
-      onTap: () {
-        print("Tapped on template ${template["templateId"]}");
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => PreEditCardPreviewPage(template: template)),
-        );
-      },
+      onTap: onTap ??
+          () {
+            // Default behavior - navigate to PreEditCardPreviewPage
+            print("Tapped on template ${template["templateId"]}");
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      PreEditCardPreviewPage(template: template)),
+            );
+          },
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: EdgeInsets.all(8.0.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Card with shadow, image, and icons
+            // Card with enhanced shadow, image, and icons
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16.r),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withAlpha(70),
-                      blurRadius: 8,
-                      offset: Offset(10, -10),
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                      spreadRadius: 0,
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                      spreadRadius: 0,
                     ),
                   ],
                 ),
                 child: Stack(
                   children: [
-                    // Background image
+                    // Background image with enhanced styling
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16.r),
                       child: CachedNetworkImage(
                         key: ValueKey(template["templateId"]), // Stable key
                         imageUrl: template["frontCover"],
@@ -61,49 +76,154 @@ class CardTemplate extends ConsumerWidget {
                         maxWidthDiskCache: 400,
                         maxHeightDiskCache: 400,
                         cacheKey: template["templateId"], // Custom cache key
-                        placeholder: (context, url) => Container(
-                          color: Colors.grey[200],
-                          child: const Center(
-                            child: CircularProgressIndicator(),
+                        errorWidget: (context, url, error) => Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFFFF3E0), Color(0xFFFFE0B2)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.image_not_supported,
+                                  color: Color(0xFFE65100),
+                                  size: 32.sp,
+                                ),
+                                SizedBox(height: 8.h),
+                                Text(
+                                  'Image not available',
+                                  style: TextStyle(
+                                    color: Color(0xFF795548),
+                                    fontSize: 12.sp,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.error),
+                        progressIndicatorBuilder: (context, url, progress) =>
+                            ImageSkeletonLoader(
+                          width: 150,
+                          height: 500,
+                          borderRadius: 16,
                         ),
                       ),
                     ),
-                    // Premium icon
+
+                    // Premium icon with enhanced styling
                     if (template["ispremium"])
                       Positioned(
-                        top: 8,
-                        right: 8,
-                        child: CircleAvatar(
-                          backgroundColor: Colors.white,
-                          radius: 16,
-                          child: Icon(
-                            Icons.star,
-                            color: Colors.yellow,
-                            size: 20,
+                        top: 8.h,
+                        right: 8.w,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.amber.withOpacity(0.3),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(6.w),
+                            child: Icon(
+                              Icons.star,
+                              color: Colors.white,
+                              size: 16.sp,
+                            ),
                           ),
                         ),
                       ),
-                    // Favorite icon with toggle functionality
+
+                    // Favorite icon with enhanced styling and toggle functionality
                     Positioned(
-                      top: 8,
-                      left: 8,
+                      top: 8.h,
+                      left: 8.w,
                       child: GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           // Toggle like status
                           likedCardsNotifier.toggleLike(template["templateId"]);
+                          await ref
+                              .read(myCardsScreenViewModelProvider.notifier)
+                              .refreshLikedCards();
                         },
-                        child: CircleAvatar(
-                          backgroundColor: Colors.white,
-                          radius: 16,
-                          child: Icon(
-                            isLiked ? Icons.favorite : Icons.favorite_border,
-                            color: isLiked ? Colors.red : Colors.red,
-                            size: 20,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: isLiked
+                                  ? const [Color(0xFFFF5722), Color(0xFFFF7043)]
+                                  : [
+                                      Colors.white.withOpacity(0.9),
+                                      Colors.white.withOpacity(0.8)
+                                    ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: isLiked
+                                    ? Colors.red.withOpacity(0.3)
+                                    : Colors.black.withOpacity(0.1),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(6.w),
+                            child: Icon(
+                              isLiked ? Icons.favorite : Icons.favorite_border,
+                              color: isLiked ? Colors.white : Colors.red,
+                              size: 16.sp,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Hover effect overlay
+                    Positioned.fill(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16.r),
+                          onTap: onTap ??
+                              () {
+                                print(
+                                    "Tapped on template ${template["templateId"]}");
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          PreEditCardPreviewPage(
+                                              template: template)),
+                                );
+                              },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16.r),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.1),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -112,23 +232,49 @@ class CardTemplate extends ConsumerWidget {
                 ),
               ),
             ),
-            // Template name below the image
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: Text(
-                template["name"],
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
+
+            // Template name with enhanced styling
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 4.0.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    template["name"],
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      height: 1.2,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (template["ispremium"]) SizedBox(height: 4.h),
+                  if (template["ispremium"])
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.star,
+                          color: Color(0xFFFFA000),
+                          size: 12.sp,
+                        ),
+                        SizedBox(width: 4.w),
+                        Text(
+                          'Premium',
+                          style: TextStyle(
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFFFA000),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4.h),
           ],
         ),
       ),

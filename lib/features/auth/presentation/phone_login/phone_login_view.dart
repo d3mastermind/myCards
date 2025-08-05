@@ -2,11 +2,15 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 import 'package:mycards/features/auth/presentation/email_login/email_login_view.dart';
 import 'package:mycards/features/auth/presentation/phone_signup/phone_signup_view.dart';
+import 'package:mycards/features/auth/presentation/verify_otp/otp_verification_view.dart';
 import 'package:mycards/main.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/features/auth/presentation/phone_login/phone_login_vm.dart';
+import 'package:mycards/core/utils/logger.dart';
+import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
 
 class PhoneLoginView extends ConsumerStatefulWidget {
   const PhoneLoginView({super.key});
@@ -27,25 +31,21 @@ class _PhoneLoginViewState extends ConsumerState<PhoneLoginView> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.listen<PhoneLoginState>(phoneLoginVMProvider, (previous, next) {
-        if (next.isSuccess) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const MyApp(),
-            ),
-          );
-        }
-      });
-    });
   }
 
   void _handlePhoneLogin() {
+    AppLogger.log('PhoneLoginView: User initiated phone login',
+        tag: 'PhoneLoginView');
     if (_formKey.currentState!.validate()) {
+      AppLogger.log(
+          'PhoneLoginView: Form validation passed, proceeding with login',
+          tag: 'PhoneLoginView');
       ref
           .read(phoneLoginVMProvider.notifier)
           .loginWithPhone(phoneNumber, context);
+    } else {
+      AppLogger.logWarning('PhoneLoginView: Form validation failed',
+          tag: 'PhoneLoginView');
     }
   }
 
@@ -56,6 +56,28 @@ class _PhoneLoginViewState extends ConsumerState<PhoneLoginView> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(phoneLoginVMProvider);
+
+    // Listen to state changes in build method
+    ref.listen<PhoneLoginState>(phoneLoginVMProvider, (previous, next) {
+      if (next.isSuccess &&
+          next.verificationId != null &&
+          next.phoneNumber != null) {
+        AppLogger.logSuccess(
+            'PhoneLoginView: Navigating to OTP verification screen',
+            tag: 'PhoneLoginView');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OtpVerificationScreen(
+              firebaseOtp: next.verificationId!,
+              phoneNumber: next.phoneNumber!,
+            ),
+          ),
+        );
+        // Clear success state after navigation
+        ref.read(phoneLoginVMProvider.notifier).clearSuccess();
+      }
+    });
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: Colors.white,
@@ -149,9 +171,7 @@ class _PhoneLoginViewState extends ConsumerState<PhoneLoginView> {
                               ? SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
+                                  child: CircularLoadingWidget(),
                                 )
                               : Text(
                                   "Log In",
@@ -209,10 +229,10 @@ class _PhoneLoginViewState extends ConsumerState<PhoneLoginView> {
                         children: [
                           if (state.isGoogleLoading)
                             const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2))
+                              height: 20,
+                              width: 20,
+                              child: CircularLoadingWidget(),
+                            )
                           else
                             Image.asset(
                               "assets/icon/google.png",

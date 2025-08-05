@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:mycards/features/app_user/app_user_provider.dart';
+import 'package:loading_indicator/loading_indicator.dart';
+import 'package:mycards/features/account/user_state_notifier.dart';
 import 'dart:io';
+import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
 
 class ProfileSettings extends ConsumerStatefulWidget {
   const ProfileSettings({super.key});
@@ -12,10 +14,8 @@ class ProfileSettings extends ConsumerStatefulWidget {
 }
 
 class _ProfileSettingsState extends ConsumerState<ProfileSettings> {
-  File? _profileImage;
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -24,12 +24,10 @@ class _ProfileSettingsState extends ConsumerState<ProfileSettings> {
   }
 
   void _loadUserData() {
-    final user = ref.read(appUserProvider);
-    if (user != null) {
-      final nameParts = user.name?.split(' ') ?? [];
-      _firstNameController.text = nameParts.isNotEmpty ? nameParts.first : '';
-      _lastNameController.text =
-          nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    final userState = ref.read(userStateNotifierProvider);
+    if (userState.user != null) {
+      _firstNameController.text = userState.firstName;
+      _lastNameController.text = userState.lastName;
     }
   }
 
@@ -41,9 +39,8 @@ class _ProfileSettingsState extends ConsumerState<ProfileSettings> {
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
       if (image != null) {
-        setState(() {
-          _profileImage = File(image.path); // Store the selected image
-        });
+        final userViewModel = ref.read(userStateNotifierProvider.notifier);
+        userViewModel.setProfileImage(File(image.path));
       }
     } catch (e) {
       print("Error picking image: $e");
@@ -51,50 +48,30 @@ class _ProfileSettingsState extends ConsumerState<ProfileSettings> {
   }
 
   Future<void> _saveProfile() async {
-    if (_firstNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('First name cannot be empty')),
-      );
-      return;
-    }
+    final userViewModel = ref.read(userStateNotifierProvider.notifier);
 
-    setState(() {
-      _isLoading = true;
-    });
+    // Update the view model with current text field values
+    userViewModel.updateFirstName(_firstNameController.text);
+    userViewModel.updateLastName(_lastNameController.text);
 
-    try {
-      // Update user name
-      final fullName =
-          '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'
-              .trim();
-      final nameUpdated =
-          await ref.read(appUserProvider.notifier).updateUserName(fullName);
+    // Save profile
+    final success = await userViewModel.saveProfile();
 
-      // TODO: Update profile image when you have image upload functionality
-      // if (_profileImage != null) {
-      //   // Upload image to storage and get URL
-      //   final imageUrl = await uploadImage(_profileImage!);
-      //   await ref.read(appUserProvider.notifier).updateProfileImage(imageUrl);
-      // }
-
-      if (nameUpdated) {
+    if (success) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully')),
         );
         Navigator.pop(context);
-      } else {
+      }
+    } else {
+      if (mounted) {
+        final userState = ref.read(userStateNotifierProvider);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update profile')),
+          SnackBar(
+              content: Text(userState.error ?? 'Failed to update profile')),
         );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -107,7 +84,7 @@ class _ProfileSettingsState extends ConsumerState<ProfileSettings> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(appUserProvider);
+    final userState = ref.watch(userStateNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -123,115 +100,142 @@ class _ProfileSettingsState extends ConsumerState<ProfileSettings> {
           },
         ),
       ),
-      body: user == null
+      body: userState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Profile Image with Edit Icon
-                  GestureDetector(
-                    onTap: () {
-                      _pickImage();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Stack(
-                        alignment: Alignment.bottomRight,
-                        children: [
-                          CircleAvatar(
-                            radius: 70,
-                            backgroundImage: _profileImage != null
-                                ? FileImage(_profileImage!)
-                                : (user.profileImageUrl != null
-                                    ? NetworkImage(user.profileImageUrl!)
-                                    : null) as ImageProvider?,
-                            backgroundColor: Colors.grey.shade300,
-                            child: _profileImage == null &&
-                                    user.profileImageUrl == null
-                                ? const Icon(Icons.person,
-                                    size: 70, color: Colors.grey)
-                                : null,
-                          ),
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Colors.white,
-                            child:
-                                Icon(Icons.edit, color: Colors.blue, size: 16),
-                          ),
-                        ],
+          : userState.user == null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.grey,
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // User Name
-                  Text(
-                    user.name ?? user.email ?? "User",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  // First Name Input
-                  TextField(
-                    controller: _firstNameController,
-                    decoration: InputDecoration(
-                      labelText: "First Name",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Last Name Input
-                  TextField(
-                    controller: _lastNameController,
-                    decoration: InputDecoration(
-                      labelText: "Last Name",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  // Save Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveProfile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepOrangeAccent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                      const SizedBox(height: 16),
+                      Text(
+                        userState.error ?? 'No user available',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : Text(
-                              "Save",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge!
-                                  .copyWith(
-                                    color: Colors.white,
-                                  ),
-                            ),
-                    ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          ref
+                              .read(userStateNotifierProvider.notifier)
+                              .refreshUserData();
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Profile Image with Edit Icon
+                      GestureDetector(
+                        onTap: () {
+                          _pickImage();
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              CircleAvatar(
+                                radius: 70,
+                                backgroundImage: userState.profileImage != null
+                                    ? FileImage(userState.profileImage!)
+                                    : (userState.user!.profileImageUrl != null
+                                        ? NetworkImage(
+                                            userState.user!.profileImageUrl!)
+                                        : null) as ImageProvider?,
+                                backgroundColor: Colors.grey.shade300,
+                                child: userState.profileImage == null &&
+                                        userState.user!.profileImageUrl == null
+                                    ? const Icon(Icons.person,
+                                        size: 70, color: Colors.grey)
+                                    : null,
+                              ),
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.white,
+                                child: Icon(Icons.edit,
+                                    color: Colors.blue, size: 16),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // User Name
+                      Text(
+                        userState.user!.name ?? userState.user!.email ?? "User",
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      // First Name Input
+                      TextField(
+                        controller: _firstNameController,
+                        decoration: InputDecoration(
+                          labelText: "Name",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Last Name Input
+                      TextField(
+                        controller: _lastNameController,
+                        decoration: InputDecoration(
+                          labelText: "Last Name",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      // Save Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: userState.isSaving ? null : _saveProfile,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepOrangeAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: userState.isSaving
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularLoadingWidget(),
+                                )
+                              : Text(
+                                  "Save",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge!
+                                      .copyWith(
+                                        color: Colors.white,
+                                      ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
     );
   }
 }

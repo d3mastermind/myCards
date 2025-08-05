@@ -3,6 +3,7 @@ import 'package:mycards/features/auth/domain/repositories/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mycards/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:mycards/core/utils/logger.dart';
 
 class OtpVerificationState {
   final bool isLoading;
@@ -38,15 +39,17 @@ class OtpVerificationVM extends StateNotifier<OtpVerificationState> {
       : super(OtpVerificationState());
 
   Future<void> verifyOtp(String verificationId, String smsCode) async {
+    AppLogger.log('OtpVerificationVM: Starting OTP verification',
+        tag: 'OtpVerificationVM');
     state = state.copyWith(isLoading: true, isError: false, errorMessage: '');
     try {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: verificationId,
-        smsCode: smsCode,
-      );
-      await authRepository.signUpWithCredential(credential);
+      await authRepository.verifyOTP(verificationId, smsCode);
+      AppLogger.logSuccess('OtpVerificationVM: OTP verification successful',
+          tag: 'OtpVerificationVM');
       state = state.copyWith(isSuccess: true);
     } catch (e) {
+      AppLogger.logError('OtpVerificationVM: OTP verification failed: $e',
+          tag: 'OtpVerificationVM');
       state = state.copyWith(isError: true, errorMessage: e.toString());
     } finally {
       state = state.copyWith(isLoading: false);
@@ -54,9 +57,12 @@ class OtpVerificationVM extends StateNotifier<OtpVerificationState> {
   }
 
   Future<void> resendOtp(String phoneNumber, BuildContext context) async {
+    AppLogger.log('OtpVerificationVM: Resending OTP to: $phoneNumber', tag: 'OtpVerificationVM');
     try {
       await authRepository.loginWithPhone(phoneNumber);
+      AppLogger.logSuccess('OtpVerificationVM: OTP resent successfully', tag: 'OtpVerificationVM');
     } catch (e) {
+      AppLogger.logError('OtpVerificationVM: OTP resend failed: $e', tag: 'OtpVerificationVM');
       // Optionally handle resend error
     }
   }
@@ -67,6 +73,11 @@ class OtpVerificationVM extends StateNotifier<OtpVerificationState> {
 
   void resetState() {
     state = OtpVerificationState();
+  }
+
+  void clearSuccess() {
+    AppLogger.log('OtpVerificationVM: Clearing success state', tag: 'OtpVerificationVM');
+    state = state.copyWith(isSuccess: false);
   }
 }
 

@@ -1,11 +1,14 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 import 'package:mycards/features/auth/presentation/email_login/email_login_vm.dart';
 import 'package:mycards/features/auth/presentation/forgot_password/forgot_password_view.dart';
 import 'package:mycards/features/auth/presentation/phone_login/phone_login_view.dart';
 import 'package:mycards/features/auth/presentation/phone_signup/phone_signup_view.dart';
+import 'package:mycards/screens/bottom_navbar_controller.dart';
 import 'package:mycards/main.dart';
+import 'package:mycards/core/utils/logger.dart';
 
 class EmailLoginView extends ConsumerStatefulWidget {
   const EmailLoginView({super.key});
@@ -23,33 +26,54 @@ class _EmailLoginViewState extends ConsumerState<EmailLoginView> {
   @override
   void initState() {
     super.initState();
-    // Listen to state changes and navigate on success
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.listen<EmailLoginState>(emailLoginVMProvider, (previous, next) {
-        if (next.isSuccess) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const MyApp()),
-            (route) => false,
-          );
-        }
-      });
-    });
   }
 
   void _handleLogin() {
+    AppLogger.log('EmailLoginView: User initiated email login',
+        tag: 'EmailLoginView');
     if (_formKey.currentState!.validate()) {
+      AppLogger.log(
+          'EmailLoginView: Form validation passed, proceeding with login',
+          tag: 'EmailLoginView');
       ref.read(emailLoginVMProvider.notifier).login(email, password);
+    } else {
+      AppLogger.logWarning('EmailLoginView: Form validation failed',
+          tag: 'EmailLoginView');
     }
   }
 
   void _handleGoogleSignIn() {
+    AppLogger.log('EmailLoginView: User initiated Google sign-in',
+        tag: 'EmailLoginView');
     ref.read(emailLoginVMProvider.notifier).signInWithGoogle();
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(emailLoginVMProvider);
+
+    // Listen to state changes and navigate on success
+    ref.listen<EmailLoginState>(emailLoginVMProvider, (previous, next) {
+      if (next.isSuccess) {
+        AppLogger.logSuccess(
+            'EmailLoginView: Login successful, navigating to home screen',
+            tag: 'EmailLoginView');
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => ScreenController()),
+          (route) => false,
+        );
+        // Clear success state after navigation
+        ref.read(emailLoginVMProvider.notifier).clearSuccess();
+      } else if (next.isError && next.errorMessage.isNotEmpty) {
+        AppLogger.logError('EmailLoginView: Login failed: ${next.errorMessage}',
+            tag: 'EmailLoginView');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage)),
+        );
+        ref.read(emailLoginVMProvider.notifier).clearError();
+      }
+    });
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -192,8 +216,16 @@ class _EmailLoginViewState extends ConsumerState<EmailLoginView> {
                                 ? SizedBox(
                                     height: 20,
                                     width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
+                                    child: LoadingIndicator(
+                                      indicatorType:
+                                          Indicator.lineSpinFadeLoader,
+                                      colors: [
+                                        Colors.red,
+                                        Colors.orange,
+                                        Colors.redAccent,
+                                        Colors.orangeAccent
+                                      ],
+                                      //backgroundColor: Colors.white,
                                     ),
                                   )
                                 : Text(
@@ -259,8 +291,16 @@ class _EmailLoginViewState extends ConsumerState<EmailLoginView> {
                                   const SizedBox(
                                     height: 20,
                                     width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
+                                    child: LoadingIndicator(
+                                      indicatorType:
+                                          Indicator.lineSpinFadeLoader,
+                                      colors: [
+                                        Colors.red,
+                                        Colors.orange,
+                                        Colors.redAccent,
+                                        Colors.orangeAccent
+                                      ],
+                                      //backgroundColor: Colors.white,
                                     ),
                                   )
                                 else

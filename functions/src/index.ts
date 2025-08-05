@@ -58,7 +58,6 @@ export const onUserCreated = functions.runWith({
     phoneNumber: user.phoneNumber || null,
     name: user.displayName || null,
     creditBalance: 10,
-    purchasedCards: [],
     likedCards: [],
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),

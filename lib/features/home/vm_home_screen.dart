@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:mycards/features/templates/domain/entities/template_entity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/features/templates/presentation/providers/all_templates.dart';
@@ -13,6 +14,7 @@ class HomeScreenState {
   final AsyncValue<Map<String, dynamic>?> uploadResult;
   final bool hasMore;
   final bool isLoadingMore;
+  final bool usingBackgroundData;
 
   const HomeScreenState({
     required this.templates,
@@ -24,6 +26,7 @@ class HomeScreenState {
     this.uploadResult = const AsyncValue.data(null),
     this.hasMore = true,
     this.isLoadingMore = false,
+    this.usingBackgroundData = false,
   });
 
   HomeScreenState copyWith({
@@ -36,6 +39,7 @@ class HomeScreenState {
     AsyncValue<Map<String, dynamic>?>? uploadResult,
     bool? hasMore,
     bool? isLoadingMore,
+    bool? usingBackgroundData,
   }) {
     return HomeScreenState(
       templates: templates ?? this.templates,
@@ -47,6 +51,7 @@ class HomeScreenState {
       uploadResult: uploadResult ?? this.uploadResult,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      usingBackgroundData: usingBackgroundData ?? this.usingBackgroundData,
     );
   }
 }
@@ -61,11 +66,38 @@ class HomeScreenViewModel extends StateNotifier<HomeScreenState> {
             filteredTemplates: [],
             searchQuery: '',
             selectedCategory: 'All')) {
-    // Watch templates automatically
+    // Watch both providers
     _watchTemplates();
   }
 
   void _watchTemplates() {
+    // Watch background provider first
+    ref.listen<AsyncValue<List<TemplateEntity>>>(allTemplatesBackgroundProvider,
+        (previous, next) {
+      next.when(
+        data: (allTemplates) {
+          // If background provider has data, use it (but don't block initial loading)
+          if (allTemplates.isNotEmpty) {
+            log("[HomeScreenViewModel] Background provider data available (${allTemplates.length} templates), updating home screen");
+            state = state.copyWith(
+              templates: AsyncValue.data(allTemplates),
+              hasMore: false, // No more loading needed
+              isLoadingMore: false,
+              usingBackgroundData: true,
+            );
+            _applyFilters(allTemplates);
+          }
+        },
+        loading: () {
+          // Don't block UI for background loading - let paginated provider handle initial load
+        },
+        error: (error, stack) {
+          // Don't block UI for background errors - let paginated provider handle initial load
+        },
+      );
+    });
+
+    // Watch paginated provider for initial load
     ref.listen<AsyncValue<List<TemplateEntity>>>(allTemplatesProvider,
         (previous, next) {
       final allTemplates = ref.read(allTemplatesProvider.notifier);
@@ -73,16 +105,25 @@ class HomeScreenViewModel extends StateNotifier<HomeScreenState> {
         templates: next,
         hasMore: allTemplates.getHasMore(),
         isLoadingMore: allTemplates.getIsLoadingMore(),
+        usingBackgroundData: false,
       );
       next.when(
         data: (templates) => _applyFilters(templates),
-        loading: () {},
+        loading: () {
+          // Don't clear filtered templates during loading to show existing data
+          // Only clear if this is the initial load
+          if (state.filteredTemplates.isEmpty) {
+            state = state.copyWith(filteredTemplates: []);
+          }
+        },
         error: (error, stack) {},
       );
     });
   }
 
   void loadTemplates() {
+    // Always load from paginated provider for initial load
+    log("[HomeScreenViewModel] Loading templates from paginated provider");
     ref
         .read(allTemplatesProvider.notifier)
         .loadAllTemplates(forceRefresh: true);
@@ -93,7 +134,13 @@ class HomeScreenViewModel extends StateNotifier<HomeScreenState> {
     final templatesAsync = ref.read(allTemplatesProvider);
     templatesAsync.when(
       data: (templates) => _applyFilters(templates),
-      loading: () {},
+      loading: () {
+        // Keep existing filtered templates during search loading
+        if (state.filteredTemplates.isNotEmpty) {
+          // Apply search to existing templates
+          _applyFiltersToExisting(query);
+        }
+      },
       error: (error, stack) {},
     );
   }
@@ -103,7 +150,13 @@ class HomeScreenViewModel extends StateNotifier<HomeScreenState> {
     final templatesAsync = ref.read(allTemplatesProvider);
     templatesAsync.when(
       data: (templates) => _applyFilters(templates),
-      loading: () {},
+      loading: () {
+        // Keep existing filtered templates during category loading
+        if (state.filteredTemplates.isNotEmpty) {
+          // Apply category filter to existing templates
+          _applyFiltersToExisting(state.searchQuery, category);
+        }
+      },
       error: (error, stack) {},
     );
   }
@@ -113,16 +166,29 @@ class HomeScreenViewModel extends StateNotifier<HomeScreenState> {
     final templatesAsync = ref.read(allTemplatesProvider);
     templatesAsync.when(
       data: (templates) => _applyFilters(templates),
-      loading: () {},
+      loading: () {
+        // Keep existing filtered templates during reset
+        if (state.filteredTemplates.isNotEmpty) {
+          _applyFiltersToExisting('', 'All');
+        }
+      },
       error: (error, stack) {},
     );
   }
 
   Future<void> refreshTemplates() async {
+    // Refresh both providers
+    await ref.read(allTemplatesBackgroundProvider.notifier).refresh();
     await ref.read(allTemplatesProvider.notifier).refresh();
   }
 
   Future<void> loadMoreTemplates() async {
+    // If using background data, no need to load more
+    if (state.usingBackgroundData) {
+      log("[HomeScreenViewModel] Using background data, no more loading needed");
+      return;
+    }
+
     state = state.copyWith(isLoadingMore: true);
     await ref.read(allTemplatesProvider.notifier).loadMoreTemplates();
     // After loading more, update filteredTemplates
@@ -162,6 +228,37 @@ class HomeScreenViewModel extends StateNotifier<HomeScreenState> {
     }
 
     state = state.copyWith(filteredTemplates: filtered);
+  }
+
+  // Apply filters to existing templates (for better UX during loading)
+  void _applyFiltersToExisting(String query, [String? category]) {
+    List<TemplateEntity> filtered = state.filteredTemplates;
+
+    // Apply search filter
+    if (query.isNotEmpty) {
+      final queryLower = query.toLowerCase();
+      filtered = filtered
+          .where((template) =>
+              template.name.toLowerCase().contains(queryLower) ||
+              template.category.toLowerCase().contains(queryLower))
+          .toList();
+    }
+
+    // Apply category filter
+    final categoryToUse = category ?? state.selectedCategory;
+    if (categoryToUse != 'All') {
+      filtered = filtered
+          .where((template) => template.category
+              .toLowerCase()
+              .contains(categoryToUse.toLowerCase()))
+          .toList();
+    }
+
+    state = state.copyWith(
+      filteredTemplates: filtered,
+      searchQuery: query,
+      selectedCategory: categoryToUse,
+    );
   }
 
   // Asset upload functionality

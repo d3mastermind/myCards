@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:mycards/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:mycards/core/utils/logger.dart';
 
 class PhoneLoginState {
   final bool isLoading;
@@ -9,6 +10,8 @@ class PhoneLoginState {
   final bool isSuccess;
   final bool isError;
   final String errorMessage;
+  final String? verificationId;
+  final String? phoneNumber;
 
   PhoneLoginState({
     this.isLoading = false,
@@ -16,6 +19,8 @@ class PhoneLoginState {
     this.isSuccess = false,
     this.isError = false,
     this.errorMessage = '',
+    this.verificationId,
+    this.phoneNumber,
   });
 
   PhoneLoginState copyWith({
@@ -24,6 +29,8 @@ class PhoneLoginState {
     bool? isSuccess,
     bool? isError,
     String? errorMessage,
+    String? verificationId,
+    String? phoneNumber,
   }) {
     return PhoneLoginState(
       isLoading: isLoading ?? this.isLoading,
@@ -31,6 +38,8 @@ class PhoneLoginState {
       isSuccess: isSuccess ?? this.isSuccess,
       isError: isError ?? this.isError,
       errorMessage: errorMessage ?? this.errorMessage,
+      verificationId: verificationId ?? this.verificationId,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
     );
   }
 }
@@ -40,11 +49,22 @@ class PhoneLoginVM extends StateNotifier<PhoneLoginState> {
   PhoneLoginVM({required this.authRepository}) : super(PhoneLoginState());
 
   Future<void> loginWithPhone(String phoneNumber, BuildContext context) async {
+    AppLogger.log('PhoneLoginVM: Starting phone login for: $phoneNumber',
+        tag: 'PhoneLoginVM');
     state = state.copyWith(isLoading: true, isError: false, errorMessage: '');
     try {
-      await authRepository.loginWithPhone(phoneNumber);
-      state = state.copyWith(isSuccess: true);
+      final verificationId = await authRepository.loginWithPhone(phoneNumber);
+      AppLogger.logSuccess(
+          'PhoneLoginVM: Phone login successful, verification ID received',
+          tag: 'PhoneLoginVM');
+      state = state.copyWith(
+        verificationId: verificationId,
+        phoneNumber: phoneNumber,
+        isSuccess: true,
+      );
     } catch (e) {
+      AppLogger.logError('PhoneLoginVM: Phone login failed: $e',
+          tag: 'PhoneLoginVM');
       state = state.copyWith(isError: true, errorMessage: e.toString());
     } finally {
       state = state.copyWith(isLoading: false);
@@ -70,6 +90,12 @@ class PhoneLoginVM extends StateNotifier<PhoneLoginState> {
 
   void resetState() {
     state = PhoneLoginState();
+  }
+
+  void clearSuccess() {
+    AppLogger.log('PhoneLoginVM: Clearing success state', tag: 'PhoneLoginVM');
+    state = state.copyWith(
+        isSuccess: false, verificationId: null, phoneNumber: null);
   }
 }
 

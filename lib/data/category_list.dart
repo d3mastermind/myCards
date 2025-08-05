@@ -52,4 +52,5 @@ final List<Map<String, dynamic>> categoryList = [
   {'icon': Icons.square_outlined, 'title': 'Grandmother\'s Day'},
   {'icon': Icons.local_hospital_outlined, 'title': 'Nurse\'s Day'},
   {'icon': Icons.corporate_fare_outlined, 'title': 'Boss\'s Day'},
+  {'icon': Icons.more_horiz_outlined, 'title': 'Others'},
 ];

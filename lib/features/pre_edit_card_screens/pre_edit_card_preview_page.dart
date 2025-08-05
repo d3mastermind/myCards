@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mycards/features/edit_screens/edit_card_screen.dart';
 import 'package:mycards/features/pre_edit_card_screens/pre_edit_card_page_view.dart';
 import 'package:mycards/features/credits/credits_vm.dart';
+import 'package:mycards/features/cards/data/card_repository_impl.dart';
+import 'package:mycards/features/cards/domain/card_entity.dart';
+import 'package:mycards/features/app_user/app_user_provider.dart';
 import 'package:mycards/widgets/loading_overlay.dart';
+import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
 
 class PreEditCardPreviewPage extends ConsumerStatefulWidget {
   final Map<String, dynamic> template;
@@ -24,10 +29,6 @@ class _PreEditCardPreviewPageState
   @override
   void initState() {
     super.initState();
-    // Load credit balance when widget initializes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(creditsNotifierProvider.notifier).loadCreditBalance();
-    });
   }
 
   @override
@@ -67,7 +68,7 @@ class _PreEditCardPreviewPageState
                 // Card preview using CardPageView
                 Expanded(
                   child: SizedBox(
-                      width: 320,
+                      width: 300.w,
                       child: PreEditCardPageView(
                         template: widget.template,
                         includeLastPage: false,
@@ -75,7 +76,8 @@ class _PreEditCardPreviewPageState
                 ),
                 // Bottom section with card name, price, and purchase button
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 6.0),
                   child: Column(
                     children: [
                       Text(
@@ -147,10 +149,13 @@ class _PreEditCardPreviewPageState
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.black),
+                                  child: CircularLoadingWidget(
+                                    colors: [
+                                      Colors.black,
+                                      Colors.black54,
+                                      Colors.black38,
+                                      Colors.black26
+                                    ],
                                   ),
                                 )
                               : Text(
@@ -269,17 +274,21 @@ class _PreEditCardPreviewPageState
       final success = await creditsNotifier.purchaseCard(cardPrice);
 
       if (success) {
+        // Create card in purchasedCards collection and get the card ID
+        final cardId = await _createPurchasedCard();
+
         setState(() {
           _isLoading = false;
         });
 
-        // Navigate to edit card screen
+        // Navigate to edit card screen with the card ID
         if (mounted) {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => EditCardPage(
                 template: widget.template,
+                cardId: cardId,
               ),
             ),
           );
@@ -295,6 +304,36 @@ class _PreEditCardPreviewPageState
         _error = 'Failed to purchase card: $e';
         _isLoading = false;
       });
+    }
+  }
+
+  Future<String> _createPurchasedCard() async {
+    try {
+      final user = AppUserService.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final cardRepository = ref.read(cardRepositoryProvider);
+
+      // Create initial card entity with a unique ID
+      final cardId = DateTime.now().millisecondsSinceEpoch.toString();
+      final card = CardEntity(
+        id: cardId,
+        templateId: widget.template['templateId'],
+        senderId: user.userId,
+        frontImageUrl: widget.template['frontCover'],
+        createdAt: DateTime.now(),
+        isShared: false,
+        creditsAttached: 0,
+      );
+
+      // Save to purchasedCards collection
+      await cardRepository.createCard(card, user.userId);
+
+      return cardId; // Return the card ID for use in EditCardPage
+    } catch (e) {
+      throw Exception('Failed to create purchased card: $e');
     }
   }
 }

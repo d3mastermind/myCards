@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
 
 class LoadingOverlay extends StatelessWidget {
   final String? message;
-  
+
   const LoadingOverlay({
-    super.key, 
+    super.key,
     this.message,
   });
 
@@ -20,7 +21,7 @@ class LoadingOverlay extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const CircularProgressIndicator(),
+                const CircularLoadingWidget(),
                 if (message != null) ...[
                   const SizedBox(height: 16.0),
                   Text(
@@ -35,4 +36,4 @@ class LoadingOverlay extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -1,13 +1,15 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:loading_indicator/loading_indicator.dart';
+import 'package:mycards/features/auth/presentation/phone_signup/phone_signup_vm.dart';
 import 'package:mycards/features/auth/presentation/email_signup/email_signup_view.dart';
 import 'package:mycards/features/auth/presentation/phone_login/phone_login_view.dart';
+import 'package:mycards/features/auth/presentation/verify_otp/otp_verification_view.dart';
 import 'package:mycards/main.dart';
-import 'package:mycards/features/home/services/auth_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mycards/features/auth/presentation/phone_signup/phone_signup_vm.dart';
+import 'dart:developer' as developer;
+import 'package:mycards/core/utils/logger.dart';
+import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
 
 class PhoneSignUpView extends ConsumerStatefulWidget {
   const PhoneSignUpView({super.key});
@@ -17,34 +19,28 @@ class PhoneSignUpView extends ConsumerStatefulWidget {
 }
 
 class _PhoneSignUpViewState extends ConsumerState<PhoneSignUpView> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool obscureText = true;
-  bool obscureText2 = true;
+  final _formKey = GlobalKey<FormState>();
   String phoneNumber = "";
-  PhoneNumber initialPhoneNumber = PhoneNumber(isoCode: 'US');
+  PhoneNumber initialPhoneNumber = PhoneNumber(isoCode: 'LK');
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.listen<PhoneSignUpState>(phoneSignUpVMProvider, (previous, next) {
-        if (next.isSuccess) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const MyApp(),
-            ),
-          );
-        }
-      });
-    });
   }
 
   void _handlePhoneSignUp() {
+    AppLogger.log('PhoneSignUpView: User initiated phone signup',
+        tag: 'PhoneSignUpView');
     if (_formKey.currentState!.validate()) {
+      AppLogger.log(
+          'PhoneSignUpView: Form validation passed, proceeding with signup',
+          tag: 'PhoneSignUpView');
       ref
           .read(phoneSignUpVMProvider.notifier)
           .signUpWithPhone(phoneNumber, context);
+    } else {
+      AppLogger.logWarning('PhoneSignUpView: Form validation failed',
+          tag: 'PhoneSignUpView');
     }
   }
 
@@ -55,6 +51,29 @@ class _PhoneSignUpViewState extends ConsumerState<PhoneSignUpView> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(phoneSignUpVMProvider);
+
+    // Listen to state changes in build method
+    ref.listen<PhoneSignUpState>(phoneSignUpVMProvider, (previous, next) {
+      if (next.isSuccess &&
+          next.verificationId != null &&
+          next.phoneNumber != null) {
+        AppLogger.logSuccess(
+            'PhoneSignUpView: Navigating to OTP verification screen',
+            tag: 'PhoneSignUpView');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OtpVerificationScreen(
+              firebaseOtp: next.verificationId!,
+              phoneNumber: next.phoneNumber!,
+            ),
+          ),
+        );
+        // Clear success state after navigation
+        ref.read(phoneSignUpVMProvider.notifier).clearSuccess();
+      }
+    });
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: Colors.white,
@@ -111,7 +130,7 @@ class _PhoneSignUpViewState extends ConsumerState<PhoneSignUpView> {
                                   setState(() {
                                     phoneNumber = number.phoneNumber!;
                                   });
-                                  log(phoneNumber);
+                                  developer.log(phoneNumber);
                                 },
                               ),
                             ),
@@ -119,75 +138,151 @@ class _PhoneSignUpViewState extends ConsumerState<PhoneSignUpView> {
                           SizedBox(
                             height: 20,
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 250,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed:
-                              state.isLoading ? null : _handlePhoneSignUp,
-                          style: ButtonStyle(
-                            backgroundColor:
-                                WidgetStatePropertyAll(Colors.deepOrange),
-                            shape: WidgetStatePropertyAll(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
+                          Container(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed:
+                                  state.isLoading ? null : _handlePhoneSignUp,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Color.fromARGB(255, 255, 215, 0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                               ),
+                              child: state.isLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: LoadingIndicator(
+                                        indicatorType:
+                                            Indicator.lineSpinFadeLoader,
+                                        colors: [
+                                          Colors.red,
+                                          Colors.orange,
+                                          Colors.redAccent,
+                                          Colors.orangeAccent
+                                        ],
+                                        //backgroundColor: Colors.white,
+                                      ),
+                                    )
+                                  : Text(
+                                      "Sign Up",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge!
+                                          .copyWith(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
                             ),
                           ),
-                          child: state.isLoading
-                              ? SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(
-                                  "Sign Up",
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  height: 1,
+                                  color: Colors.grey.withAlpha(100),
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  "OR",
                                   style: Theme.of(context)
                                       .textTheme
-                                      .displaySmall!
-                                      .copyWith(color: Colors.white),
+                                      .titleMedium!
+                                      .copyWith(
+                                        color: Colors.grey,
+                                      ),
                                 ),
-                        ),
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Center(
-                    child: SizedBox(
-                      height: 20,
-                      child: Stack(
-                        children: [
-                          Align(
-                            child: Divider(),
+                              ),
+                              Expanded(
+                                child: Container(
+                                  height: 1,
+                                  color: Colors.grey.withAlpha(100),
+                                ),
+                              ),
+                            ],
                           ),
-                          Align(
-                            alignment: Alignment.center,
+                          SizedBox(
+                            height: 20,
+                          ),
+                          GestureDetector(
+                            onTap: state.isGoogleLoading
+                                ? null
+                                : _handleGoogleSignUp,
                             child: Container(
-                              alignment: Alignment.center,
-                              width: 100,
-                              height: 20,
-                              color: Colors.white,
-                              child: Text(
-                                "OR",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  backgroundColor: Colors.white,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.grey.withAlpha(60)),
+                              height: 50,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(width: 10),
+                                  if (state.isGoogleLoading)
+                                    const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularLoadingWidget(),
+                                    )
+                                  else
+                                    Image.asset(
+                                      "assets/icon/google.png",
+                                      height: 40,
+                                    ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    state.isGoogleLoading
+                                        ? "Signing in..."
+                                        : "Sign Up With Google",
+                                    style:
+                                        Theme.of(context).textTheme.bodyLarge,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EmailSignUpView(),
                                 ),
+                                (route) => false,
+                              );
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.grey.withAlpha(60)),
+                              height: 50,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(width: 10),
+                                  Image.asset(
+                                    "assets/icon/email.png",
+                                    height: 40,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    "Sign Up With Email",
+                                    style:
+                                        Theme.of(context).textTheme.bodyLarge,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -196,111 +291,43 @@ class _PhoneSignUpViewState extends ConsumerState<PhoneSignUpView> {
                     ),
                   ),
                   SizedBox(
-                    height: 20,
-                  ),
-                  Column(
-                    children: [
-                      GestureDetector(
-                        onTap:
-                            state.isGoogleLoading ? null : _handleGoogleSignUp,
-                        child: Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.grey.withAlpha(60)),
-                          height: 50,
-                          child: Row(
-                            spacing: 10,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (state.isGoogleLoading)
-                                const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              else
-                                Image.asset(
-                                  "assets/icon/google.png",
-                                  height: 40,
-                                ),
-                              Text(
-                                state.isGoogleLoading
-                                    ? "Signing in..."
-                                    : "Sign Up With Google",
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EmailSignUpView(),
-                            ),
-                            (route) => false,
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.grey.withAlpha(60)),
-                          height: 50,
-                          child: Row(
-                            spacing: 10,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                "assets/icon/email.png",
-                                height: 40,
-                              ),
-                              Text(
-                                "Sign Up With Email",
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
                     height: 10,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Already Have and account?",
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      TextButton(
-                          onPressed: () {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PhoneLoginView(),
-                              ),
-                              (route) => false,
-                            );
-                          },
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
                           child: Text(
-                            "Log In",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge!
-                                .copyWith(
-                                  color: Color.fromARGB(255, 255, 215, 0),
+                            "Already have an account?",
+                            style: Theme.of(context).textTheme.titleMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        TextButton(
+                            onPressed: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PhoneLoginView(),
                                 ),
-                          ))
-                    ],
+                                (route) => false,
+                              );
+                            },
+                            child: Text(
+                              "Log In",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium!
+                                  .copyWith(
+                                    color: Color.fromARGB(255, 255, 215, 0),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ))
+                      ],
+                    ),
                   )
                 ],
               ),

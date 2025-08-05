@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mycards/features/card_screens/front_cover.dart';
 import 'package:mycards/features/card_screens/share_card_view.dart';
 import 'package:mycards/features/pre_edit_card_screens/pre_edit_5th_page.dart';
@@ -41,13 +42,15 @@ class _PreEditCardPageViewState extends State<PreEditCardPageView> {
         image: frontCoverImageUrl,
         isUrl: true,
       ),
-      PreEdit2ndPage(bgImageUrl: frontCoverImageUrl),
+      PreEdit2ndPage(
+        bgImageUrl: frontCoverImageUrl,
+        isUrl: true,
+      ),
       PreEdit3rdPage(),
       PreEdit4thPage(
         audioUrl: "audio/defaultaudio.mp3",
         bgImageUrl: frontCoverImageUrl,
       ),
-      if (widget.includeLastPage) ShareCardView(),
       PreEdit5thPage(),
     ];
 
@@ -67,36 +70,36 @@ class _PreEditCardPageViewState extends State<PreEditCardPageView> {
                 },
                 itemBuilder: (context, index) {
                   return Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 8),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 16.0.w, vertical: 8.h),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                       child: pages[index],
                     ),
                   );
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 pages.length,
                 (index) => AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: _currentPage == index ? 16 : 8,
-                  height: 8,
+                  margin: EdgeInsets.symmetric(horizontal: 4.w),
+                  width: _currentPage == index ? 16.w : 8.w,
+                  height: 8.h,
                   decoration: BoxDecoration(
                     color: _currentPage == index
                         ? Colors.orange
                         : Colors.grey.withAlpha(100),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(4.r),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
           ],
         ),
       ),

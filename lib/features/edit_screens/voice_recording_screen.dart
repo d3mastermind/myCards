@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:mycards/providers/card_data_provider.dart';
+import 'package:mycards/features/edit_screens/card_data_provider.dart';
+import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
 
 class VoiceRecordingScreen extends ConsumerStatefulWidget {
   const VoiceRecordingScreen({super.key});
@@ -98,8 +99,21 @@ class _VoiceRecordingScreenState extends ConsumerState<VoiceRecordingScreen>
       if (filePath != null) {
         final file = File(filePath);
         if (await file.exists()) {
-          ref.read(cardEditingProvider.notifier).recordVoiceMessage(filePath);
-          _showSuccess('Recording saved successfully');
+          try {
+            // Show loading indicator
+            _showSuccess('Uploading voice message...');
+
+            // Upload the voice message using the provider
+            await ref
+                .read(cardEditingProvider.notifier)
+                .uploadVoiceMessage(file);
+
+            // Show success message
+            _showSuccess('Voice message uploaded successfully!');
+          } catch (e) {
+            log('Upload error: $e');
+            _showError('Failed to upload voice message: $e');
+          }
         }
       }
     } catch (e) {
@@ -108,10 +122,10 @@ class _VoiceRecordingScreenState extends ConsumerState<VoiceRecordingScreen>
     }
   }
 
-  Future<void> _playRecording(String path) async {
+  Future<void> _playRecording(String url) async {
     try {
       await _player!.startPlayer(
-        fromURI: path,
+        fromURI: url,
         codec: Codec.aacADTS,
         whenFinished: () {
           setState(() {
@@ -162,67 +176,283 @@ class _VoiceRecordingScreenState extends ConsumerState<VoiceRecordingScreen>
   }
 
   Widget _buildRecordingControls() {
-    return Column(
-      children: [
-        const Text(
-          'Record your voice message',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: _isRecording ? _stopRecording : _startRecording,
-          icon: Icon(_isRecording ? Icons.stop : Icons.mic),
-          label: Text(_isRecording ? 'Stop Recording' : 'Start Recording'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _isRecording ? Colors.red : Colors.orange,
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildExistingRecording(String recordingPath) {
-    return Column(
-      children: [
-        const Text(
-          'Voice Message',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 20),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Header Section
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFF3E0), Color(0xFFFFE0B2)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.orange.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: _isPlaying
-                          ? _stopPlayback
-                          : () => _playRecording(recordingPath),
-                      icon: Icon(_isPlaying ? Icons.stop : Icons.play_arrow),
-                      label: Text(
-                        _isPlaying ? 'Stop' : 'Play Recording',
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _isPlaying ? Colors.red : Colors.blue,
-                      ),
-                    ),
-                  ],
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.orange,
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: const Icon(
+                    Icons.mic,
+                    color: Colors.white,
+                    size: 32,
+                  ),
                 ),
                 const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: _startRecording,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Record New Message'),
+                const Text(
+                  'Record Your Voice Message',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFE65100),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Add a personal touch to your card with a voice message',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF795548),
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
-        ),
-      ],
+          const SizedBox(height: 32),
+          // Recording Button
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: _isRecording
+                    ? const [Color(0xFFFF5722), Color(0xFFFF7043)]
+                    : const [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(60),
+              boxShadow: [
+                BoxShadow(
+                  color: (_isRecording ? Colors.red : Colors.green)
+                      .withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(60),
+                onTap: _isRecording ? _stopRecording : _startRecording,
+                child: Center(
+                  child: Icon(
+                    _isRecording ? Icons.stop : Icons.mic,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            _isRecording ? 'Recording...' : 'Tap to Start Recording',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: _isRecording ? Colors.red : Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExistingRecording(String recordingUrl) {
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Header Section
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE3F2FD), Color(0xFFBBDEFB)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: const Icon(
+                    Icons.audiotrack,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Voice Message Ready',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1976D2),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Your voice message has been uploaded successfully',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF424242),
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+          // Playback Controls
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Play/Stop Button
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: _isPlaying
+                        ? const [Color(0xFFFF5722), Color(0xFFFF7043)]
+                        : const [Color(0xFF2196F3), Color(0xFF42A5F5)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(40),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (_isPlaying ? Colors.red : Colors.blue)
+                          .withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(40),
+                    onTap: _isPlaying
+                        ? _stopPlayback
+                        : () => _playRecording(recordingUrl),
+                    child: Center(
+                      child: Icon(
+                        _isPlaying ? Icons.stop : Icons.play_arrow,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Record New Button
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(40),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(40),
+                    onTap: _startRecording,
+                    child: const Center(
+                      child: Icon(
+                        Icons.refresh,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text(
+                _isPlaying ? 'Stop' : 'Play',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _isPlaying ? Colors.red : Colors.blue[600],
+                ),
+              ),
+              const Text(
+                'Record New',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF4CAF50),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -231,34 +461,111 @@ class _VoiceRecordingScreenState extends ConsumerState<VoiceRecordingScreen>
     super.build(context);
 
     final cardData = ref.watch(cardEditingProvider);
+    final isLoading = cardData.isLoading;
 
     if (!_hasPermission) {
-      return const Center(
-        child: Text(
-          'Microphone permission is required for voice recording.',
-          textAlign: TextAlign.center,
+      return Container(
+        padding: const EdgeInsets.all(24.0),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFEBEE), Color(0xFFFFCDD2)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.red.withOpacity(0.3)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: const Icon(
+                    Icons.mic_off,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Microphone Permission Required',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFD32F2F),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Please grant microphone permission to record voice messages.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF795548),
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
         ),
       );
     }
 
     if (!_isInitialized) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: _isRecording
-                ? _buildRecordingControls()
-                : cardData.voiceRecording != null
-                    ? _buildExistingRecording(cardData.voiceRecording!)
-                    : _buildRecordingControls(),
+      return Container(
+        padding: const EdgeInsets.all(24.0),
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularLoadingWidget(),
+              SizedBox(height: 16),
+              Text(
+                'Initializing audio components...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
           ),
         ),
-      ],
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      child: isLoading
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularLoadingWidget(),
+                  SizedBox(height: 16),
+                  Text(
+                    'Uploading voice message...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : _isRecording
+              ? _buildRecordingControls()
+              : cardData.voiceNoteUrl != null
+                  ? _buildExistingRecording(cardData.voiceNoteUrl!)
+                  : _buildRecordingControls(),
     );
   }
 }

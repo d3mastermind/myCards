@@ -1,16 +1,18 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mycards/features/auth/data/datasources/user_remote_datasource.dart';
 import 'package:mycards/features/auth/data/models/user_model.dart';
+import 'package:mycards/core/utils/logger.dart';
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> loginWithEmail(String email, String password);
   Future<void> signupWithEmail(String email, String password);
   Future<void> sendEmailVerification();
   Future<void> resetPassword(String email);
-  Future<void> loginWithPhone(String phoneNumber);
+  Future<String> loginWithPhone(String phoneNumber);
   Future<void> verifyOTP(String verificationId, String otp);
   Future<UserModel> signInWithGoogle();
   Future<void> signUpWithGoogle();
@@ -92,47 +94,85 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> loginWithPhone(String phoneNumber) async {
+  Future<String> loginWithPhone(String phoneNumber) async {
+    AppLogger.log('Starting phone verification for: $phoneNumber',
+        tag: 'AuthRemoteDataSource');
+    Completer<String> verificationIdCompleter = Completer<String>();
+
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         verificationCompleted: (PhoneAuthCredential credential) async {
-          // Auto-verification completed
+          AppLogger.logSuccess('Auto-verification completed for: $phoneNumber',
+              tag: 'AuthRemoteDataSource');
           await _handlePhoneVerificationCompleted(credential);
         },
         verificationFailed: (FirebaseAuthException e) {
-          throw FirebaseAuthException(
-            code: e.code,
-            message: e.message ?? 'Phone verification failed',
-          );
+          AppLogger.logError(
+              'Phone verification failed for $phoneNumber: ${e.message}',
+              tag: 'AuthRemoteDataSource');
+          if (!verificationIdCompleter.isCompleted) {
+            verificationIdCompleter.completeError(FirebaseAuthException(
+              code: e.code,
+              message: e.message ?? 'Phone verification failed',
+            ));
+          }
         },
         codeSent: (String verificationId, int? resendToken) {
-          // Code sent successfully - this is handled by the presentation layer
+          AppLogger.logSuccess('OTP code sent successfully for: $phoneNumber',
+              tag: 'AuthRemoteDataSource');
+          if (!verificationIdCompleter.isCompleted) {
+            verificationIdCompleter.complete(verificationId);
+          }
         },
         codeAutoRetrievalTimeout: (String verificationId) {
-          // Auto-retrieval timeout - this is handled by the presentation layer
+          AppLogger.logWarning('OTP auto-retrieval timeout for: $phoneNumber',
+              tag: 'AuthRemoteDataSource');
+          if (!verificationIdCompleter.isCompleted) {
+            verificationIdCompleter.completeError(Exception('OTP timeout'));
+          }
         },
       );
+
+      final verificationId = await verificationIdCompleter.future;
+      AppLogger.logSuccess(
+          'Phone verification initiated successfully. Verification ID received',
+          tag: 'AuthRemoteDataSource');
+      return verificationId;
     } catch (e) {
+      AppLogger.logError('Phone login failed for $phoneNumber: $e',
+          tag: 'AuthRemoteDataSource');
       throw Exception('Phone login failed: $e');
     }
   }
 
   @override
   Future<void> verifyOTP(String verificationId, String otp) async {
+    AppLogger.log(
+        'Starting OTP verification with ID: ${verificationId.substring(0, 10)}...',
+        tag: 'AuthRemoteDataSource');
     try {
       final PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: verificationId,
         smsCode: otp,
       );
 
+      AppLogger.log('PhoneAuthCredential created successfully',
+          tag: 'AuthRemoteDataSource');
       await _handlePhoneVerificationCompleted(credential);
+      AppLogger.logSuccess('OTP verification completed successfully',
+          tag: 'AuthRemoteDataSource');
     } on FirebaseAuthException catch (e) {
+      AppLogger.logError(
+          'OTP verification failed with Firebase error: ${e.message}',
+          tag: 'AuthRemoteDataSource');
       throw FirebaseAuthException(
         code: e.code,
         message: e.message ?? 'OTP verification failed',
       );
     } catch (e) {
+      AppLogger.logError('OTP verification failed with general error: $e',
+          tag: 'AuthRemoteDataSource');
       throw Exception('OTP verification failed: $e');
     }
   }
@@ -199,6 +239,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
+      // Ensure user document exists in Firestore
+      await _ensureUserDocumentExists(user);
+
       // Get user data from Firestore
       final userModel = await _userDataSource.getUser(user.uid);
       if (userModel != null) {
@@ -252,6 +295,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           message: 'User not found after Google sign-up',
         );
       }
+
+      // Ensure user document exists in Firestore
+      await _ensureUserDocumentExists(user);
+
       // The Cloud Function will automatically create user data when a new user signs up
     } on FirebaseAuthException catch (e) {
       throw FirebaseAuthException(
@@ -260,6 +307,52 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
     } catch (e) {
       throw Exception('Google sign-up failed: $e');
+    }
+  }
+
+  // Helper method to ensure user document exists
+  Future<void> _ensureUserDocumentExists(User user) async {
+    try {
+      final userDocRef = _firestore.collection('users').doc(user.uid);
+      final userDoc = await userDocRef.get();
+
+      if (!userDoc.exists) {
+        // Create user document if it doesn't exist
+        final userData = {
+          'userId': user.uid,
+          'email': user.email,
+          'phoneNumber': user.phoneNumber,
+          'name': user.displayName,
+          'creditBalance': 10,
+          'likedCards': [],
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+
+        await userDocRef.set(userData);
+
+        // Create credits subcollection
+        await userDocRef.collection('credits').doc('balance').set({
+          'balance': 10,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+
+        // Create initial transaction
+        await userDocRef.collection('transactions').add({
+          'userId': user.uid,
+          'amount': 10,
+          'createdAt': FieldValue.serverTimestamp(),
+          'type': 'purchase',
+          'status': 'completed',
+          'description': 'Welcome bonus credits',
+          'paymentMethod': 'signup_bonus',
+        });
+
+        print('User document created for Google sign-in: ${user.uid}');
+      }
+    } catch (e) {
+      print('Error ensuring user document exists: $e');
+      // Don't throw here as the user is already authenticated
     }
   }
 
@@ -291,16 +384,26 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   // Helper method to handle phone verification completion
   Future<void> _handlePhoneVerificationCompleted(
       PhoneAuthCredential credential) async {
+    AppLogger.log('Handling phone verification completion',
+        tag: 'AuthRemoteDataSource');
     try {
       final UserCredential userCredential =
           await _auth.signInWithCredential(credential);
       final User? user = userCredential.user;
 
       if (user != null) {
+        AppLogger.logSuccess(
+            'User signed in successfully with phone: ${user.phoneNumber}',
+            tag: 'AuthRemoteDataSource');
         // Note: User document creation is now handled by Cloud Function onUserSignUp
         // The Cloud Function will automatically create user data when a new user signs up
+      } else {
+        AppLogger.logError('User is null after phone verification',
+            tag: 'AuthRemoteDataSource');
       }
     } catch (e) {
+      AppLogger.logError('Phone verification completion failed: $e',
+          tag: 'AuthRemoteDataSource');
       throw Exception('Phone verification completion failed: $e');
     }
   }

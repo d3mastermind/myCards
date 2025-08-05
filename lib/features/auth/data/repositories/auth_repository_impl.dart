@@ -4,6 +4,7 @@ import 'package:mycards/features/auth/data/datasources/auth_remote_datasource.da
 import 'package:mycards/features/auth/data/models/user_model.dart';
 import 'package:mycards/features/auth/domain/entities/user_entity.dart';
 import 'package:mycards/features/auth/domain/repositories/auth_repository.dart';
+import 'package:mycards/core/utils/logger.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource authRemoteDataSource;
@@ -33,13 +34,36 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> loginWithPhone(String phoneNumber) async {
-    await authRemoteDataSource.loginWithPhone(phoneNumber);
+  Future<String> loginWithPhone(String phoneNumber) async {
+    AppLogger.log('Repository: Starting phone login for: $phoneNumber',
+        tag: 'AuthRepository');
+    try {
+      final verificationId =
+          await authRemoteDataSource.loginWithPhone(phoneNumber);
+      AppLogger.logSuccess(
+          'Repository: Phone login successful, verification ID received',
+          tag: 'AuthRepository');
+      return verificationId;
+    } catch (e) {
+      AppLogger.logError('Repository: Phone login failed: $e',
+          tag: 'AuthRepository');
+      rethrow;
+    }
   }
 
   @override
   Future<void> verifyOTP(String verificationId, String otp) async {
-    await authRemoteDataSource.verifyOTP(verificationId, otp);
+    AppLogger.log('Repository: Starting OTP verification',
+        tag: 'AuthRepository');
+    try {
+      await authRemoteDataSource.verifyOTP(verificationId, otp);
+      AppLogger.logSuccess('Repository: OTP verification successful',
+          tag: 'AuthRepository');
+    } catch (e) {
+      AppLogger.logError('Repository: OTP verification failed: $e',
+          tag: 'AuthRepository');
+      rethrow;
+    }
   }
 
   @override
@@ -66,9 +90,7 @@ class AuthRepositoryImpl implements AuthRepository {
       phoneNumber: model.phoneNumber,
       name: model.name,
       creditBalance: model.creditBalance,
-      purchasedCards: model.purchasedCards,
       likedCards: model.likedCards,
-      receivedCards: model.receivedCards,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     );

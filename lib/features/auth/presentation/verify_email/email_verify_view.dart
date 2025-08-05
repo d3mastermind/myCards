@@ -4,6 +4,7 @@ import 'package:mycards/main.dart';
 import 'package:mycards/features/home/services/auth_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/features/auth/presentation/verify_email/email_verify_vm.dart';
+import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
 
 class EmailVerifyView extends ConsumerWidget {
   const EmailVerifyView({
@@ -54,7 +55,7 @@ class EmailVerifyView extends ConsumerWidget {
                     ? const SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularLoadingWidget(),
                       )
                     : const Text('CONTINUE'),
               ),

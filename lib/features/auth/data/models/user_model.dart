@@ -8,44 +8,62 @@ class UserModel extends UserEntity {
     super.phoneNumber,
     super.name,
     super.creditBalance = 10, // Default credit balance
-    super.purchasedCards = const [],
     super.likedCards = const [],
-    super.receivedCards = const [],
     required super.createdAt,
     required super.updatedAt,
     super.profileImageUrl,
   });
 
   // Factory method to create an instance from data
-  factory UserModel.fromMap( Map<String, dynamic> data) {
+  factory UserModel.fromMap(Map<String, dynamic> data) {
+    DateTime parseDateTime(dynamic value) {
+      if (value == null) {
+        return DateTime.now(); // fallback for null values
+      } else if (value is Timestamp) {
+        return value.toDate();
+      } else if (value is String) {
+        return DateTime.parse(value);
+      } else {
+        return DateTime.now(); // fallback
+      }
+    }
+
     return UserModel(
       userId: data['userId'],
       email: data['email'] ?? '',
       phoneNumber: data['phoneNumber'],
       name: data['name'],
       creditBalance: data['creditBalance'] ?? 10,
-      purchasedCards: List<String>.from(data['purchasedCards'] ?? []),
       likedCards: List<String>.from(data['likedCards'] ?? []),
-      receivedCards: List<String>.from(data['receivedCards'] ?? []),
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      createdAt: parseDateTime(data['createdAt']),
+      updatedAt: parseDateTime(data['updatedAt']),
       profileImageUrl: data['profileImageUrl'],
     );
   }
 
   // Factory method to create from Firebase with separate userId and data map
   factory UserModel.fromFirebase(String userId, Map<String, dynamic> data) {
+    DateTime parseDateTime(dynamic value) {
+      if (value == null) {
+        return DateTime.now(); // fallback for null values
+      } else if (value is Timestamp) {
+        return value.toDate();
+      } else if (value is String) {
+        return DateTime.parse(value);
+      } else {
+        return DateTime.now(); // fallback
+      }
+    }
+
     return UserModel(
       userId: userId,
       email: data['email'] ?? '',
       phoneNumber: data['phoneNumber'],
       name: data['name'],
       creditBalance: data['creditBalance'] ?? 10,
-      purchasedCards: List<String>.from(data['purchasedCards'] ?? []),
       likedCards: List<String>.from(data['likedCards'] ?? []),
-      receivedCards: List<String>.from(data['receivedCards'] ?? []),
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      createdAt: parseDateTime(data['createdAt']),
+      updatedAt: parseDateTime(data['updatedAt']),
       profileImageUrl: data['profileImageUrl'],
     );
   }
@@ -53,17 +71,58 @@ class UserModel extends UserEntity {
   // Method to convert the object to a Firestore-friendly map
   Map<String, dynamic> toMap() {
     return {
+      'userId': userId, // Add userId to the map
       'email': email,
       'phoneNumber': phoneNumber,
       'name': name,
       'creditBalance': creditBalance,
-      'purchasedCards': purchasedCards,
+
       'likedCards': likedCards,
-      'receivedCards': receivedCards,
+
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
       'profileImageUrl': profileImageUrl,
     };
+  }
+
+  // Method to convert the object to a storage-friendly map (for Hive/JSON)
+  Map<String, dynamic> toStorageMap() {
+    return {
+      'userId': userId,
+      'email': email,
+      'phoneNumber': phoneNumber,
+      'name': name,
+      'creditBalance': creditBalance,
+      'likedCards': likedCards,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+      'profileImageUrl': profileImageUrl,
+    };
+  }
+
+  // Factory method to create an instance from storage data (handles both Timestamp and string formats)
+  factory UserModel.fromStorageMap(Map<String, dynamic> data) {
+    DateTime parseDateTime(dynamic value) {
+      if (value is Timestamp) {
+        return value.toDate();
+      } else if (value is String) {
+        return DateTime.parse(value);
+      } else {
+        return DateTime.now(); // fallback
+      }
+    }
+
+    return UserModel(
+      userId: data['userId'],
+      email: data['email'] ?? '',
+      phoneNumber: data['phoneNumber'],
+      name: data['name'],
+      creditBalance: data['creditBalance'] ?? 10,
+      likedCards: List<String>.from(data['likedCards'] ?? []),
+      createdAt: parseDateTime(data['createdAt']),
+      updatedAt: parseDateTime(data['updatedAt']),
+      profileImageUrl: data['profileImageUrl'],
+    );
   }
 
   // Create a copy of the user with updated fields
@@ -73,9 +132,7 @@ class UserModel extends UserEntity {
     String? phoneNumber,
     String? name,
     int? creditBalance,
-    List<String>? purchasedCards,
     List<String>? likedCards,
-    List<String>? receivedCards,
     DateTime? createdAt,
     DateTime? updatedAt,
     String? profileImageUrl,
@@ -86,9 +143,7 @@ class UserModel extends UserEntity {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       name: name ?? this.name,
       creditBalance: creditBalance ?? this.creditBalance,
-      purchasedCards: purchasedCards ?? this.purchasedCards,
       likedCards: likedCards ?? this.likedCards,
-      receivedCards: receivedCards ?? this.receivedCards,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,

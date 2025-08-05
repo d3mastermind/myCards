@@ -21,16 +21,22 @@ service cloud.firestore {
       match /transactions/{document=**} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+      
+      // User purchased cards subcollection - only the user can access their own purchased cards
+      match /purchasedCards/{cardId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // User cards - only the user can access their own cards
-    match /user_cards/{userId}/{cardId} {
+      // User received cards subcollection - only the user can access their own received cards
+      match /receivedCards/{cardId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
+    }
     
-    // Purchased templates - only the user can access their purchases
-    match /user_purchases/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // Shared cards collection - anyone can read shared cards, but only authenticated users can create them
+    match /sharedCards/{shareLinkId} {
+      allow read: if true; // Anyone can read shared cards
+      allow write: if request.auth != null; // Only authenticated users can create/update shared cards
     }
     
     // Default deny all other paths
