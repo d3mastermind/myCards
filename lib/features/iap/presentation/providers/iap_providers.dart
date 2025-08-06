@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:toastification/toastification.dart';
 import 'package:mycards/features/iap/data/datasources/iap_datasource.dart';
 import 'package:mycards/features/iap/domain/services/iap_service.dart';
 import 'package:mycards/features/iap/domain/entities/purchase_product.dart';
@@ -52,6 +54,17 @@ final iapProductsProvider = FutureProvider<List<PurchaseProduct>>((ref) async {
   } catch (e, stackTrace) {
     print('❌ Error loading IAP products: $e');
     print('Stack trace: $stackTrace');
+
+    // Show error toast
+    toastification.show(
+      type: ToastificationType.error,
+      style: ToastificationStyle.flatColored,
+      title: Text('Failed to load products'),
+      description: Text('Please try again later'),
+      autoCloseDuration: const Duration(seconds: 4),
+      icon: const Icon(Icons.error_outline),
+    );
+
     rethrow;
   }
 });
@@ -84,6 +97,17 @@ class IAPNotifier extends StateNotifier<AsyncValue<PurchaseResult?>> {
     } catch (e, stackTrace) {
       print('❌ Error initializing IAP in notifier: $e');
       print('Stack trace: $stackTrace');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to initialize IAP'),
+        description: Text('Please try again later'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state = AsyncValue.error(e, stackTrace);
     }
   }
@@ -106,6 +130,17 @@ class IAPNotifier extends StateNotifier<AsyncValue<PurchaseResult?>> {
       // For pending status, wait for stream updates
     } catch (e, stackTrace) {
       print('📱 Purchase exception: $e');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Purchase failed'),
+        description: Text('Please try again later'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state = AsyncValue.error(e, stackTrace);
     }
   }
@@ -118,6 +153,16 @@ class IAPNotifier extends StateNotifier<AsyncValue<PurchaseResult?>> {
       await _iapService.restorePurchases();
       // Results will be updated through the stream listener
     } catch (e, stackTrace) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to restore purchases'),
+        description: Text('Please try again later'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state = AsyncValue.error(e, stackTrace);
     }
   }

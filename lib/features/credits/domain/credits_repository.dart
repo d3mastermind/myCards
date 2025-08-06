@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:mycards/features/credits/data/transaction_entiity.dart';
+import 'package:mycards/features/credits/domain/transaction_entiity.dart';
 
 abstract class CreditsRepository {
   Future<int> getCreditBalance(String userId);

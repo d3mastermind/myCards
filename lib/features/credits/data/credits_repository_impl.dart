@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mycards/core/utils/logger.dart';
 import 'package:mycards/di/service_locator.dart';
 import 'package:mycards/features/credits/domain/credits_repository.dart';
-import 'package:mycards/features/credits/data/transaction_entiity.dart';
+import 'package:mycards/features/credits/domain/transaction_entiity.dart';
 import 'package:mycards/features/credits/data/datasources/credits_remote_datasource.dart';
 import 'package:mycards/features/credits/data/models/transaction_model.dart';
 
@@ -25,7 +26,7 @@ class CreditsRepositoryImpl implements CreditsRepository {
     try {
       final transactions =
           await _remoteDataSource.getTransactionHistory(userId);
-      return transactions.map((model) => model.toEntity()).toList();
+      return transactions.map((model) => model).toList();
     } catch (e) {
       throw Exception('Failed to get transaction history: $e');
     }
@@ -34,6 +35,8 @@ class CreditsRepositoryImpl implements CreditsRepository {
   @override
   Future<bool> purchaseCard(String userId, int amount) async {
     try {
+      AppLogger.log("Purchasing card for user $userId with amount $amount",
+          tag: "Credit Repository");
       return await _remoteDataSource.purchaseCard(userId, amount);
     } catch (e) {
       throw Exception('Failed to purchase card: $e');

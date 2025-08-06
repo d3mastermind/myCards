@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:toastification/toastification.dart';
 import 'package:mycards/features/app_user/app_user_provider.dart';
 
 class LikedCardsNotifier extends StateNotifier<List<String>> {
@@ -10,6 +13,22 @@ class LikedCardsNotifier extends StateNotifier<List<String>> {
   LikedCardsNotifier(this._ref) : super([]) {
     // Don't load immediately, wait for user to be available
     _initializeWhenUserAvailable();
+  }
+
+  // Helper method to get user-friendly Firebase error messages
+  String _getFirebaseErrorMessage(String code) {
+    switch (code) {
+      case 'permission-denied':
+        return 'Access denied. Please check your permissions.';
+      case 'unavailable':
+        return 'Network error. Please check your connection.';
+      case 'deadline-exceeded':
+        return 'Request timeout. Please try again.';
+      case 'not-found':
+        return 'User not found.';
+      default:
+        return 'Database error. Please try again.';
+    }
   }
 
   // Get current user ID from app user provider
@@ -45,14 +64,40 @@ class LikedCardsNotifier extends StateNotifier<List<String>> {
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
         final likedCards = List<String>.from(data['likedCards'] ?? []);
-        print('Loaded ${likedCards.length} liked cards: $likedCards');
+        print(
+            'Loaded ${likedCards.length} liked cards from firestore: $likedCards');
         state = likedCards;
       } else {
         print('No user document found or no liked cards');
         state = [];
       }
+    } on FirebaseException catch (e) {
+      print('Error loading liked cards: $e');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to load liked cards'),
+        description: Text(_getFirebaseErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
+      rethrow;
     } catch (e) {
       print('Error loading liked cards: $e');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to load liked cards'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state = [];
     }
   }
@@ -90,8 +135,34 @@ class LikedCardsNotifier extends StateNotifier<List<String>> {
       });
 
       print('Updated Firestore with liked cards: $currentLikedCards');
+    } on FirebaseException catch (e) {
+      print('Error toggling like: $e');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to update like'),
+        description: Text(_getFirebaseErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
+      // Revert local state on error
+      await _loadLikedCards();
     } catch (e) {
       print('Error toggling like: $e');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to update like'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       // Revert local state on error
       await _loadLikedCards();
     }
@@ -125,8 +196,33 @@ class LikedCardsNotifier extends StateNotifier<List<String>> {
         'likedCards': [],
         'updatedAt': FieldValue.serverTimestamp(),
       });
+    } on FirebaseException catch (e) {
+      print('Error clearing liked cards: $e');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to clear liked cards'),
+        description: Text(_getFirebaseErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
+      await _loadLikedCards(); // Revert on error
     } catch (e) {
       print('Error clearing liked cards: $e');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to clear liked cards'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       await _loadLikedCards(); // Revert on error
     }
   }

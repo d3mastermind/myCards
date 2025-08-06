@@ -124,11 +124,11 @@ class MyCardsScreenViewModel extends StateNotifier<MyCardsScreenState> {
       // Get liked card IDs
       final likedCardIds = _ref.read(likedCardsProvider);
       AppLogger.log(
-          'Found ${likedCardIds.length} liked card IDs: $likedCardIds',
+          'Found ${likedCardIds.length} liked card IDs from liked Cards Provider: $likedCardIds',
           tag: 'MyCardsScreenViewModel');
 
       // Watch all templates provider
-      final allTemplatesAsync = _ref.watch(allTemplatesProvider);
+      final allTemplatesAsync = _ref.watch(allTemplatesBackgroundProvider);
 
       allTemplatesAsync.when(
         data: (templates) {

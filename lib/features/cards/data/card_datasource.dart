@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:toastification/toastification.dart';
 import 'package:mycards/features/cards/domain/card_entity.dart';
 
 abstract class CardDatasource {
@@ -16,6 +19,22 @@ abstract class CardDatasource {
 
 class CardDatasourceImpl implements CardDatasource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Helper method to get user-friendly Firebase error messages
+  String _getFirebaseErrorMessage(String code) {
+    switch (code) {
+      case 'permission-denied':
+        return 'Access denied. Please check your permissions.';
+      case 'unavailable':
+        return 'Network error. Please check your connection.';
+      case 'deadline-exceeded':
+        return 'Request timeout. Please try again.';
+      case 'not-found':
+        return 'Card not found.';
+      default:
+        return 'Database error. Please try again.';
+    }
+  }
 
   @override
   Future<void> createCard(CardEntity card, String userId) async {
@@ -44,7 +63,29 @@ class CardDatasourceImpl implements CardDatasource {
         'isShared': card.isShared,
         'frontImageUrl': card.frontImageUrl,
       });
+    } on FirebaseException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to create card'),
+        description: Text(_getFirebaseErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
+      throw Exception('Failed to create card: $e');
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to create card'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Failed to create card: $e');
     }
   }
@@ -115,7 +156,29 @@ class CardDatasourceImpl implements CardDatasource {
       }
 
       throw Exception('Card not found');
+    } on FirebaseException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to get card'),
+        description: Text(_getFirebaseErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
+      throw Exception('Failed to get card: $e');
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to get card'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Failed to get card: $e');
     }
   }
@@ -152,11 +215,33 @@ class CardDatasourceImpl implements CardDatasource {
           frontImageUrl: data['frontImageUrl'],
         );
       }).toList();
+    } on FirebaseException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to get purchased cards'),
+        description: Text(_getFirebaseErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
+      throw Exception('Failed to get purchased cards: $e');
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to get purchased cards'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Failed to get purchased cards: $e');
     }
   }
-  
+
   @override
   Future<List<CardEntity>> getReceivedCards(String userId) async {
     try {
@@ -189,11 +274,33 @@ class CardDatasourceImpl implements CardDatasource {
           frontImageUrl: data['frontImageUrl'],
         );
       }).toList();
+    } on FirebaseException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to get received cards'),
+        description: Text(_getFirebaseErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
+      throw Exception('Failed to get received cards: $e');
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to get received cards'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Failed to get received cards: $e');
     }
   }
-  
+
   @override
   Future<void> updateCard(
       String cardId, String userId, Map<String, dynamic> updates) async {
@@ -213,11 +320,33 @@ class CardDatasourceImpl implements CardDatasource {
       } else {
         throw Exception('Card not found for update');
       }
+    } on FirebaseException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to update card'),
+        description: Text(_getFirebaseErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
+      throw Exception('Failed to update card: $e');
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to update card'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Failed to update card: $e');
     }
   }
-  
+
   @override
   Future<String> createShareLink(
       String cardId, CardEntity card, String userId) async {
@@ -260,11 +389,33 @@ class CardDatasourceImpl implements CardDatasource {
       });
 
       return shareLinkId;
+    } on FirebaseException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to create share link'),
+        description: Text(_getFirebaseErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
+      throw Exception('Failed to create share link: $e');
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to create share link'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Failed to create share link: $e');
     }
   }
-  
+
   @override
   Future<CardEntity?> getSharedCard(String shareLinkId) async {
     try {
@@ -294,11 +445,33 @@ class CardDatasourceImpl implements CardDatasource {
         );
       }
       return null;
+    } on FirebaseException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to get shared card'),
+        description: Text(_getFirebaseErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
+      throw Exception('Failed to get shared card: $e');
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to get shared card'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Failed to get shared card: $e');
     }
   }
-  
+
   @override
   Future<void> addToReceivedCards(String shareLinkId, String receiverId) async {
     try {
@@ -337,7 +510,29 @@ class CardDatasourceImpl implements CardDatasource {
         'isShared': true,
         'frontImageUrl': sharedCard.frontImageUrl,
       });
+    } on FirebaseException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to add to received cards'),
+        description: Text(_getFirebaseErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
+      throw Exception('Failed to add to received cards: $e');
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to add to received cards'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Failed to add to received cards: $e');
     }
   }

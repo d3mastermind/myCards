@@ -11,6 +11,7 @@ import 'package:mycards/features/auth/presentation/verify_email/email_verify_vie
 import 'package:mycards/features/auth/presentation/phone_login/phone_login_view.dart';
 import 'package:mycards/screens/bottom_navbar_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:toastification/toastification.dart';
 import 'firebase_options.dart';
 import 'package:mycards/features/home/services/auth_service.dart';
 import 'package:mycards/features/app_user/app_user_provider.dart';
@@ -45,13 +46,15 @@ void main() async {
 
   runApp(
     ProviderScope(
-      child: const MyApp(),
+      child: ToastificationWrapper(
+        child: const MyApp(),
+      ),
     ),
   );
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
+      // statusBarColor: Colors.white,
       statusBarIconBrightness: Brightness.dark,
     ),
   );
@@ -106,7 +109,12 @@ class MyApp extends StatelessWidget {
                   child: LoadingIndicator(
                 indicatorType: Indicator.ballGridBeat,
                 //backgroundColor: Colors.white,
-                colors: [Colors.red, Colors.orange, Colors.redAccent, Colors.orangeAccent],
+                colors: [
+                  Colors.red,
+                  Colors.orange,
+                  Colors.redAccent,
+                  Colors.orangeAccent
+                ],
               ));
             },
           ),

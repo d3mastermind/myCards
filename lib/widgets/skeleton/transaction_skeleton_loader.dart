@@ -10,8 +10,9 @@ class TransactionSkeletonLoader extends StatelessWidget {
       baseColor: const Color.fromRGBO(244, 244, 244, 1.0),
       highlightColor: const Color.fromRGBO(255, 255, 255, 1.0),
       child: ListView.builder(
+        shrinkWrap: true,
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        itemCount: 5,
+        itemCount: 7,
         itemBuilder: (context, index) => Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),

@@ -190,19 +190,17 @@ class MyCardsScreen extends ConsumerWidget {
           children: [
             _buildSectionHeader(
               'Favorites',
-              likedTemplates.length > 3
-                  ? () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TemplateGridScreen(
-                            appBarTitle: 'Favorite',
-                            templates: templatesForGrid,
-                          ),
-                        ),
-                      );
-                    }
-                  : null,
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TemplateGridScreen(
+                      appBarTitle: 'Favorite',
+                      templates: templatesForGrid,
+                    ),
+                  ),
+                );
+              },
             ),
             SizedBox(height: 12.h),
             SizedBox(

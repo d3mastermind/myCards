@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -386,10 +388,7 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
 
                       // Transaction List
                       transactionHistory.when(
-                        loading: () => Container(
-                          height: 200.h,
-                          child: const TransactionSkeletonLoader(),
-                        ),
+                        loading: () => const TransactionSkeletonLoader(),
                         data: (transactions) {
                           if (transactions.isEmpty) {
                             return Container(
@@ -447,13 +446,13 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                             itemCount: transactions.length,
                             itemBuilder: (context, index) {
                               final transaction = transactions[index];
+                              log("Transaction: ${transaction.description}");
                               return myTransactionTile(
                                 amount:
-                                    "${transaction.amount > 0 ? '+' : ''}${transaction.amount} CR",
-                                description: _getTransactionDescription(
-                                    transaction.type),
-                                date: _formatDate(transaction.createdAt),
-                                color: transaction.amount > 0
+                                    "${transaction.amount! > 0 ? '+' : ''}${transaction.amount} CR",
+                                description: transaction.description ?? '',
+                                date: _formatDate(transaction.createdAt!),
+                                color: transaction.amount! > 0
                                     ? Colors.green
                                     : Colors.red,
                               );

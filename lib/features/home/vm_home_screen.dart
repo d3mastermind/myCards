@@ -131,7 +131,7 @@ class HomeScreenViewModel extends StateNotifier<HomeScreenState> {
 
   void searchTemplates(String query) {
     state = state.copyWith(searchQuery: query);
-    final templatesAsync = ref.read(allTemplatesProvider);
+    final templatesAsync = ref.read(allTemplatesBackgroundProvider);
     templatesAsync.when(
       data: (templates) => _applyFilters(templates),
       loading: () {
@@ -147,7 +147,7 @@ class HomeScreenViewModel extends StateNotifier<HomeScreenState> {
 
   void filterTemplates(String category) {
     state = state.copyWith(selectedCategory: category);
-    final templatesAsync = ref.read(allTemplatesProvider);
+    final templatesAsync = ref.read(allTemplatesBackgroundProvider);
     templatesAsync.when(
       data: (templates) => _applyFilters(templates),
       loading: () {
@@ -162,8 +162,9 @@ class HomeScreenViewModel extends StateNotifier<HomeScreenState> {
   }
 
   void resetSearch() {
+    log("[HomeScreenViewModel] Resetting search");
     state = state.copyWith(searchQuery: '', selectedCategory: 'All');
-    final templatesAsync = ref.read(allTemplatesProvider);
+    final templatesAsync = ref.read(allTemplatesBackgroundProvider);
     templatesAsync.when(
       data: (templates) => _applyFilters(templates),
       loading: () {

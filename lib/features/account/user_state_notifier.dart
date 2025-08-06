@@ -1,5 +1,8 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:toastification/toastification.dart';
 import 'package:mycards/core/utils/logger.dart';
 import 'package:mycards/features/app_user/app_user_provider.dart';
 import 'package:mycards/features/auth/domain/entities/user_entity.dart';
@@ -48,6 +51,7 @@ class UserState {
 // Unified StateNotifier for user management
 class UserStateNotifier extends StateNotifier<UserState> {
   final AppUserService _appUserService;
+  final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
 
   UserStateNotifier({required AppUserService appUserService})
       : _appUserService = appUserService,
@@ -104,10 +108,22 @@ class UserStateNotifier extends StateNotifier<UserState> {
     } catch (e) {
       AppLogger.logError('UserStateNotifier: Error loading user data: $e',
           tag: 'UserStateNotifier');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to load user data'),
+        description: Text('Please try again later'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
       );
+      rethrow;
     }
   }
 
@@ -145,6 +161,58 @@ class UserStateNotifier extends StateNotifier<UserState> {
     state = state.copyWith(profileImage: image);
   }
 
+  Future<String?> uploadProfileImage(File imageFile) async {
+    try {
+      AppLogger.log('UserStateNotifier: Starting profile image upload',
+          tag: 'UserStateNotifier');
+
+      final user = state.user;
+      if (user == null) {
+        AppLogger.logError(
+            'UserStateNotifier: No user available for image upload',
+            tag: 'UserStateNotifier');
+        return null;
+      }
+
+      // Create a unique filename for the profile image
+      final fileName =
+          'profile_images/${user.userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      // Create a reference to the file location
+      final storageRef = _firebaseStorage.ref().child(fileName);
+
+      // Upload the file
+      final uploadTask = storageRef.putFile(imageFile);
+
+      // Wait for the upload to complete
+      final snapshot = await uploadTask;
+
+      // Get the download URL
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      AppLogger.logSuccess(
+          'UserStateNotifier: Profile image uploaded successfully: $downloadUrl',
+          tag: 'UserStateNotifier');
+
+      return downloadUrl;
+    } catch (e) {
+      AppLogger.logError('UserStateNotifier: Error uploading profile image: $e',
+          tag: 'UserStateNotifier');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to upload profile image'),
+        description: Text('Please try again later'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
+      return null;
+    }
+  }
+
   Future<bool> saveProfile() async {
     try {
       AppLogger.log('UserStateNotifier: Saving profile',
@@ -180,19 +248,40 @@ class UserStateNotifier extends StateNotifier<UserState> {
         return false;
       }
 
-      // TODO: Handle profile image upload when image upload functionality is available
-      // if (state.profileImage != null) {
-      //   final imageUrl = await uploadImage(state.profileImage!);
-      //   final imageUpdated = await _appUserService.updateProfileImage(imageUrl);
-      //   if (!imageUpdated) {
-      //     AppLogger.logError('UserStateNotifier: Failed to update profile image', tag: 'UserStateNotifier');
-      //     state = state.copyWith(
-      //       error: 'Failed to update profile image',
-      //       isSaving: false,
-      //     );
-      //     return false;
-      //   }
-      // }
+      // Handle profile image upload
+      if (state.profileImage != null) {
+        AppLogger.log('UserStateNotifier: Uploading profile image',
+            tag: 'UserStateNotifier');
+
+        final imageUrl = await uploadProfileImage(state.profileImage!);
+
+        if (imageUrl != null) {
+          final imageUpdated =
+              await _appUserService.updateProfileImage(imageUrl);
+          if (!imageUpdated) {
+            AppLogger.logError(
+                'UserStateNotifier: Failed to update profile image',
+                tag: 'UserStateNotifier');
+            state = state.copyWith(
+              error: 'Failed to update profile image',
+              isSaving: false,
+            );
+            return false;
+          }
+          AppLogger.logSuccess(
+              'UserStateNotifier: Profile image updated successfully',
+              tag: 'UserStateNotifier');
+        } else {
+          AppLogger.logError(
+              'UserStateNotifier: Failed to upload profile image',
+              tag: 'UserStateNotifier');
+          state = state.copyWith(
+            error: 'Failed to upload profile image',
+            isSaving: false,
+          );
+          return false;
+        }
+      }
 
       AppLogger.logSuccess('UserStateNotifier: Profile saved successfully',
           tag: 'UserStateNotifier');
@@ -205,6 +294,17 @@ class UserStateNotifier extends StateNotifier<UserState> {
     } catch (e) {
       AppLogger.logError('UserStateNotifier: Error saving profile: $e',
           tag: 'UserStateNotifier');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to save profile'),
+        description: Text('Please try again later'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state = state.copyWith(
         error: e.toString(),
         isSaving: false,
@@ -233,6 +333,17 @@ class UserStateNotifier extends StateNotifier<UserState> {
     } catch (e) {
       AppLogger.logError('UserStateNotifier: Error during logout: $e',
           tag: 'UserStateNotifier');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Logout failed'),
+        description: Text('Please try again later'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -255,6 +366,17 @@ class UserStateNotifier extends StateNotifier<UserState> {
     } catch (e) {
       AppLogger.logError('UserStateNotifier: Error during complete cleanup: $e',
           tag: 'UserStateNotifier');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Cleanup failed'),
+        description: Text('Please try again later'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),

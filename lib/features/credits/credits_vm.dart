@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mycards/features/credits/data/transaction_entiity.dart';
+import 'package:toastification/toastification.dart';
+import 'package:mycards/features/credits/domain/transaction_entiity.dart';
 import 'package:mycards/features/credits/domain/credits_repository.dart';
 import 'package:mycards/features/credits/data/credits_repository_impl.dart';
 import 'package:mycards/features/home/services/auth_service.dart';
@@ -68,6 +70,19 @@ class CreditNotifier extends StateNotifier<CreditState> {
       final balance = await _repository.getCreditBalance(userId);
       state = state.copyWith(creditBalance: AsyncValue.data(balance));
     } catch (error, stackTrace) {
+      // Log the error for debugging
+      print('Credit balance error: $error');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to load balance'),
+        description: Text(error.toString()),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state =
           state.copyWith(creditBalance: AsyncValue.error(error, stackTrace));
     }
@@ -90,6 +105,19 @@ class CreditNotifier extends StateNotifier<CreditState> {
       final transactions = await _repository.getTransactionHistory(userId);
       state = state.copyWith(transactionHistory: AsyncValue.data(transactions));
     } catch (error, stackTrace) {
+      // Log the error for debugging
+      print('Transaction history error: $error');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to load transactions'),
+        description: Text(error.toString()),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state = state.copyWith(
           transactionHistory: AsyncValue.error(error, stackTrace));
     }
@@ -109,10 +137,30 @@ class CreditNotifier extends StateNotifier<CreditState> {
         // Reload credit balance after successful purchase
         await loadCreditBalance();
         await loadTransactionHistory();
+
+        // Show success toast
+        toastification.show(
+          type: ToastificationType.success,
+          style: ToastificationStyle.flatColored,
+          title: Text('Card purchased successfully'),
+          description: Text('Credits deducted: $amount'),
+          autoCloseDuration: const Duration(seconds: 3),
+          icon: const Icon(Icons.check_circle),
+        );
       }
 
       return success;
     } catch (error, stackTrace) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to purchase card'),
+        description: Text(error.toString()),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       return false;
     }
   }
@@ -137,7 +185,27 @@ class CreditNotifier extends StateNotifier<CreditState> {
       // Reload credit balance after purchase
       await loadCreditBalance();
       await loadTransactionHistory();
+
+      // Show success toast
+      toastification.show(
+        type: ToastificationType.success,
+        style: ToastificationStyle.flatColored,
+        title: Text('Credits purchased successfully'),
+        description: Text('Added $amount credits to your account'),
+        autoCloseDuration: const Duration(seconds: 3),
+        icon: const Icon(Icons.check_circle),
+      );
     } catch (error, stackTrace) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to purchase credits'),
+        description: Text(error.toString()),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state =
           state.copyWith(purchaseStatus: AsyncValue.error(error, stackTrace));
     }
@@ -164,7 +232,27 @@ class CreditNotifier extends StateNotifier<CreditState> {
       // Reload credit balance and transaction history after sending
       await loadCreditBalance();
       await loadTransactionHistory();
+
+      // Show success toast
+      toastification.show(
+        type: ToastificationType.success,
+        style: ToastificationStyle.flatColored,
+        title: Text('Credits sent successfully'),
+        description: Text('Sent $amount credits to $toEmail'),
+        autoCloseDuration: const Duration(seconds: 3),
+        icon: const Icon(Icons.check_circle),
+      );
     } catch (error, stackTrace) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to send credits'),
+        description: Text(error.toString()),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state = state.copyWith(sendStatus: AsyncValue.error(error, stackTrace));
     }
   }
@@ -189,7 +277,27 @@ class CreditNotifier extends StateNotifier<CreditState> {
       // Reload credit balance and transaction history after sending
       await loadCreditBalance();
       await loadTransactionHistory();
+
+      // Show success toast
+      toastification.show(
+        type: ToastificationType.success,
+        style: ToastificationStyle.flatColored,
+        title: Text('Credits sent successfully'),
+        description: Text('Sent $amount credits to user'),
+        autoCloseDuration: const Duration(seconds: 3),
+        icon: const Icon(Icons.check_circle),
+      );
     } catch (error, stackTrace) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to send credits'),
+        description: Text(error.toString()),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       state = state.copyWith(sendStatus: AsyncValue.error(error, stackTrace));
     }
   }

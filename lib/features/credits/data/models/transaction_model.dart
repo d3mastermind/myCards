@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../transaction_entiity.dart';
+import '../../domain/transaction_entiity.dart';
 
 enum TransactionType {
   purchase,
@@ -16,31 +16,19 @@ enum TransactionStatus {
   cancelled,
 }
 
-class TransactionModel {
-  final String id;
-  final String userId;
-  final String? cardId;
-  final int amount;
-  final DateTime createdAt;
-  final TransactionType type;
-  final TransactionStatus status;
-  final String? fromUserId;
-  final String? toUserId;
-  final String? description;
-  final String? paymentMethod;
-
+class TransactionModel extends TransactionEntity {
   TransactionModel({
-    required this.id,
-    required this.userId,
-    this.cardId,
-    required this.amount,
-    required this.createdAt,
-    required this.type,
-    required this.status,
-    this.fromUserId,
-    this.toUserId,
-    this.description,
-    this.paymentMethod,
+    super.id,
+    super.userId,
+    super.cardId,
+    super.amount,
+    super.createdAt,
+    super.type,
+    super.status,
+    super.description,
+    super.fromUserId,
+    super.toUserId,
+    super.paymentMethod,
   });
 
   // Factory method to create an instance from Firestore data
@@ -51,14 +39,8 @@ class TransactionModel {
       cardId: data['cardId'],
       amount: data['amount'] ?? 0,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
-      type: TransactionType.values.firstWhere(
-        (e) => e.toString().split('.').last == data['type'],
-        orElse: () => TransactionType.purchase,
-      ),
-      status: TransactionStatus.values.firstWhere(
-        (e) => e.toString().split('.').last == data['status'],
-        orElse: () => TransactionStatus.completed,
-      ),
+      type: data['type'],
+      status: data['status'],
       fromUserId: data['fromUserId'],
       toUserId: data['toUserId'],
       description: data['description'],
@@ -72,7 +54,7 @@ class TransactionModel {
       'userId': userId,
       'cardId': cardId,
       'amount': amount,
-      'createdAt': Timestamp.fromDate(createdAt),
+      'createdAt': Timestamp.fromDate(createdAt!),
       'type': type.toString().split('.').last,
       'status': status.toString().split('.').last,
       'fromUserId': fromUserId,
@@ -115,8 +97,8 @@ class TransactionModel {
       cardId: cardId ?? this.cardId,
       amount: amount ?? this.amount,
       createdAt: createdAt ?? this.createdAt,
-      type: type ?? this.type,
-      status: status ?? this.status,
+      type: type?.toString().split('.').last,
+      status: status?.toString().split('.').last,
       fromUserId: fromUserId ?? this.fromUserId,
       toUserId: toUserId ?? this.toUserId,
       description: description ?? this.description,
@@ -124,4 +106,3 @@ class TransactionModel {
     );
   }
 }
- 

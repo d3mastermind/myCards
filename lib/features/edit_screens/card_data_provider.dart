@@ -2,7 +2,9 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:toastification/toastification.dart';
 import 'package:mycards/features/app_user/app_user_provider.dart';
 import 'package:mycards/features/auth/domain/entities/user_entity.dart';
 import 'package:mycards/features/cards/data/card_datasource.dart';
@@ -102,6 +104,17 @@ class CardDataNotifier extends StateNotifier<CardData> {
     } catch (e) {
       state = state.copyWith(isLoading: false);
       log('Error uploading custom image: $e');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to upload image'),
+        description: Text('Please try again later'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Failed to upload custom image: $e');
     }
   }
@@ -132,6 +145,17 @@ class CardDataNotifier extends StateNotifier<CardData> {
     } catch (e) {
       state = state.copyWith(isLoading: false);
       log('Error uploading voice message: $e');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to upload voice message'),
+        description: Text('Please try again later'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Failed to upload voice message: $e');
     }
   }
@@ -169,6 +193,17 @@ class CardDataNotifier extends StateNotifier<CardData> {
       log('Card saved to repository successfully');
     } catch (e) {
       log('Error saving card to repository: $e');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to save card'),
+        description: Text('Please try again later'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Failed to save card: $e');
     }
   }
@@ -194,6 +229,17 @@ class CardDataNotifier extends StateNotifier<CardData> {
       }
     } catch (e) {
       log('Error updating card in repository: $e');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Failed to update card'),
+        description: Text('Please try again later'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Failed to update card: $e');
     }
   }

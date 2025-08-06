@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mycards/features/edit_screens/edit_card_screen.dart';
+import 'package:mycards/features/my_cards/presentation/providers/my_cards_screen_vm.dart';
 import 'package:mycards/features/pre_edit_card_screens/pre_edit_card_page_view.dart';
 import 'package:mycards/features/credits/credits_vm.dart';
 import 'package:mycards/features/cards/data/card_repository_impl.dart';
@@ -276,6 +277,9 @@ class _PreEditCardPreviewPageState
       if (success) {
         // Create card in purchasedCards collection and get the card ID
         final cardId = await _createPurchasedCard();
+        await ref
+            .read(myCardsScreenViewModelProvider.notifier)
+            .refreshPurchasedCards();
 
         setState(() {
           _isLoading = false;
@@ -295,7 +299,6 @@ class _PreEditCardPreviewPageState
         }
       } else {
         setState(() {
-          _error = 'Failed to purchase card - insufficient credits';
           _isLoading = false;
         });
       }

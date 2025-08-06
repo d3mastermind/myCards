@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:toastification/toastification.dart';
 import 'package:mycards/features/auth/data/datasources/user_remote_datasource.dart';
 import 'package:mycards/features/auth/data/models/user_model.dart';
 import 'package:mycards/core/utils/logger.dart';
@@ -26,6 +28,34 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   AuthRemoteDataSourceImpl() {
     _userDataSource = UserRemoteDataSourceImpl(firestore: _firestore);
+  }
+
+  // Helper method to get user-friendly auth error messages
+  String _getAuthErrorMessage(String code) {
+    switch (code) {
+      case 'user-not-found':
+        return 'No account found with this email';
+      case 'wrong-password':
+        return 'Incorrect password';
+      case 'invalid-email':
+        return 'Invalid email address';
+      case 'user-disabled':
+        return 'Account has been disabled';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later';
+      case 'network-request-failed':
+        return 'Network error. Please check your connection';
+      case 'operation-not-allowed':
+        return 'This operation is not allowed';
+      case 'invalid-verification-code':
+        return 'Invalid verification code';
+      case 'invalid-verification-id':
+        return 'Invalid verification ID';
+      case 'quota-exceeded':
+        return 'SMS quota exceeded. Please try again later';
+      default:
+        return 'Authentication failed. Please try again';
+    }
   }
 
   @override
@@ -61,11 +91,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
     } on FirebaseAuthException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Login failed'),
+        description: Text(_getAuthErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw FirebaseAuthException(
         code: e.code,
         message: e.message ?? 'Login failed',
       );
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Login failed'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Login failed: $e');
     }
   }
@@ -84,11 +134,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       // Note: User document creation is now handled by Cloud Function onUserSignUp
     } on FirebaseAuthException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Signup failed'),
+        description: Text(_getAuthErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw FirebaseAuthException(
         code: e.code,
         message: e.message ?? 'Signup failed',
       );
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Signup failed'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Signup failed: $e');
     }
   }
@@ -142,6 +212,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       AppLogger.logError('Phone login failed for $phoneNumber: $e',
           tag: 'AuthRemoteDataSource');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Phone login failed'),
+        description: Text('Failed to send verification code'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Phone login failed: $e');
     }
   }
@@ -166,6 +247,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.logError(
           'OTP verification failed with Firebase error: ${e.message}',
           tag: 'AuthRemoteDataSource');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('OTP verification failed'),
+        description: Text(_getAuthErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw FirebaseAuthException(
         code: e.code,
         message: e.message ?? 'OTP verification failed',
@@ -173,6 +265,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       AppLogger.logError('OTP verification failed with general error: $e',
           tag: 'AuthRemoteDataSource');
+
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('OTP verification failed'),
+        description: Text('Invalid verification code'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('OTP verification failed: $e');
     }
   }
@@ -182,11 +285,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Password reset failed'),
+        description: Text(_getAuthErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw FirebaseAuthException(
         code: e.code,
         message: e.message ?? 'Password reset failed',
       );
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Password reset failed'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Password reset failed: $e');
     }
   }
@@ -201,11 +324,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw Exception('No user is currently signed in');
       }
     } on FirebaseAuthException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Email verification failed'),
+        description: Text(_getAuthErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw FirebaseAuthException(
         code: e.code,
         message: e.message ?? 'Email verification failed',
       );
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Email verification failed'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Email verification failed: $e');
     }
   }
@@ -258,11 +401,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
     } on FirebaseAuthException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Google sign-in failed'),
+        description: Text(_getAuthErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw FirebaseAuthException(
         code: e.code,
         message: e.message ?? 'Google sign-in failed',
       );
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Google sign-in failed'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Google sign-in failed: $e');
     }
   }
@@ -301,11 +464,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       // The Cloud Function will automatically create user data when a new user signs up
     } on FirebaseAuthException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Google sign-up failed'),
+        description: Text(_getAuthErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw FirebaseAuthException(
         code: e.code,
         message: e.message ?? 'Google sign-up failed',
       );
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Google sign-up failed'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Google sign-up failed: $e');
     }
   }
@@ -372,11 +555,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       // Note: User document creation is now handled by Cloud Function onUserSignU
     } on FirebaseAuthException catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Phone sign-up failed'),
+        description: Text(_getAuthErrorMessage(e.code)),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw FirebaseAuthException(
         code: e.code,
         message: e.message ?? 'Credential sign-up failed',
       );
     } catch (e) {
+      // Show error toast
+      toastification.show(
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        title: Text('Phone sign-up failed'),
+        description: Text('An unexpected error occurred'),
+        autoCloseDuration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline),
+      );
+
       throw Exception('Credential sign-up failed: $e');
     }
   }

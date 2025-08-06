@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mycards/widgets/card_template.dart';
 import 'package:mycards/widgets/category_item.dart';
 import 'package:mycards/features/templates/domain/entities/template_entity.dart';
@@ -7,6 +8,7 @@ import 'package:mycards/features/templates/presentation/providers/all_templates.
 import 'vm_home_screen.dart';
 import 'package:mycards/widgets/skeleton/home_skeleton_loader.dart';
 import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
+import 'package:mycards/core/utils/logger.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -56,7 +58,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Function to filter by category
   void _filterByCategory(String category) {
+    AppLogger.log("Filtering by category: $category", tag: "Home Screen");
     ref.read(homeScreenViewModelProvider.notifier).filterTemplates(category);
+  }
+
+  // Function to clear category filter
+  void _clearCategoryFilter() {
+    AppLogger.log("Clearing category filter", tag: "Home Screen");
+    ref.read(homeScreenViewModelProvider.notifier).resetSearch();
   }
 
   // Toggle admin panel
@@ -375,45 +384,77 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Popular Categories",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Popular Categories",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  if (homeState.selectedCategory != null)
+                    GestureDetector(
+                      onTap: _clearCategoryFilter,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, vertical: 12.h),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.clear,
+                                size: 16.sp, color: Colors.grey[600]),
+                            SizedBox(width: 4.w),
+                            Text(
+                              "Clear",
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  GestureDetector(
-                    onTap: () => _filterByCategory("Birthday"),
-                    child: CategoryItem(
-                        label: "Birthday",
-                        icon: Icons.cake,
-                        color: Colors.orange),
+                  _buildCategoryItem(
+                    label: "Birthday",
+                    icon: Icons.cake,
+                    color: Colors.orange,
+                    category: "Birthday",
+                    isSelected: homeState.selectedCategory == "Birthday",
                   ),
-                  GestureDetector(
-                    onTap: () => _filterByCategory("Wedding"),
-                    child: CategoryItem(
-                        label: "Wedding",
-                        icon: Icons.favorite,
-                        color: Colors.pink),
+                  _buildCategoryItem(
+                    label: "Wedding",
+                    icon: Icons.favorite,
+                    color: Colors.pink,
+                    category: "Wedding",
+                    isSelected: homeState.selectedCategory == "Wedding",
                   ),
-                  GestureDetector(
-                    onTap: () => _filterByCategory("Christmas"),
-                    child: CategoryItem(
-                        label: "Christmas",
-                        icon: Icons.square,
-                        color: Colors.green),
+                  _buildCategoryItem(
+                    label: "Christmas",
+                    icon: Icons.square,
+                    color: Colors.green,
+                    category: "Christmas",
+                    isSelected: homeState.selectedCategory == "Christmas",
                   ),
-                  GestureDetector(
-                    onTap: () => _filterByCategory("Ramadan"),
-                    child: CategoryItem(
-                        label: "Ramadan",
-                        icon: Icons.star,
-                        color: Colors.purple),
+                  _buildCategoryItem(
+                    label: "Ramadan",
+                    icon: Icons.star,
+                    color: Colors.purple,
+                    category: "Ramadan",
+                    isSelected: homeState.selectedCategory == "Ramadan",
                   ),
                 ],
               ),
@@ -479,6 +520,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       'price': template.price,
       'frontCover': template.frontCover,
     };
+  }
+
+  // Helper method to build category item with selection state
+  Widget _buildCategoryItem({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required String category,
+    required bool isSelected,
+  }) {
+    return GestureDetector(
+      onTap: () => _filterByCategory(category),
+      child: CategoryItem(
+        isSelected: isSelected,
+        label: label,
+        icon: icon,
+        color: isSelected ? color : color.withOpacity(0.7),
+      ),
+    );
   }
 
   @override
