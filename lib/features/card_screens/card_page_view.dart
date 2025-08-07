@@ -11,6 +11,8 @@ import 'package:mycards/features/card_screens/voice_message_view.dart';
 import 'package:mycards/widgets/loading_overlay.dart';
 import 'package:mycards/core/utils/logger.dart';
 import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
+import 'package:mycards/features/credits/data/credits_repository_impl.dart';
+import 'package:mycards/features/app_user/app_user_provider.dart';
 
 class CardPageView extends ConsumerStatefulWidget {
   const CardPageView({
@@ -63,6 +65,36 @@ class _CardPageViewState extends ConsumerState<CardPageView> {
     });
 
     try {
+      // Get current user
+      final currentUser = AppUserService.instance.currentUser;
+      if (currentUser == null) {
+        throw Exception('User not authenticated');
+      }
+
+      // Get credits to attach to the card for recipient
+      final creditsToAttach = widget.cardData.creditsAttached;
+
+      if (creditsToAttach > 0) {
+        AppLogger.log(
+            'Attaching $creditsToAttach credits to card for recipient...',
+            tag: 'CardPageView');
+
+        // Debit credits from sender and attach to card for recipient
+        final creditsRepository = ref.read(creditsRepositoryProvider);
+        final success = await creditsRepository.attachCreditsToCard(
+            currentUser.userId, (creditsToAttach - 10));
+
+        if (!success) {
+          throw Exception(
+              'Failed to attach credits. Please check your balance.');
+        }
+
+        AppLogger.log('Credits attached successfully: $creditsToAttach',
+            tag: 'CardPageView');
+      } else {
+        AppLogger.log('No credits to attach to this card', tag: 'CardPageView');
+      }
+
       // Save card to repository
       AppLogger.log('Saving card to repository...', tag: 'CardPageView');
       await ref.read(cardEditingProvider.notifier).saveCardToRepository();
@@ -73,7 +105,17 @@ class _CardPageViewState extends ConsumerState<CardPageView> {
       goToShareScreen();
     } catch (e) {
       AppLogger.logError('Error saving card: $e', tag: 'CardPageView');
-      setState(() => _error = 'Failed to save card. Please try again.');
+      String errorMessage = 'Failed to save card. Please try again.';
+
+      // Handle specific error cases
+      if (e.toString().contains('Insufficient credits')) {
+        errorMessage =
+            'Insufficient credits to attach to this card. Please purchase more credits.';
+      } else if (e.toString().contains('User not authenticated')) {
+        errorMessage = 'Please log in again to save the card.';
+      }
+
+      setState(() => _error = errorMessage);
     } finally {
       setState(() => _isSaving = false);
     }

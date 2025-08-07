@@ -92,5 +92,11 @@
 		<string>applinks:mycards-c7f33.web.app</string>
 		<string>applinks:mycards-c7f33.firebaseapp.com</string>
 	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>mailto</string>
+		<string>sms</string>
+		<string>tel</string>
+	</array>
 </dict>
 </plist>

@@ -12,6 +12,7 @@ abstract class CreditsRemoteDataSource {
   Future<void> sendCredits(String fromUserId, String toUserId, int amount);
   Future<void> updateCreditBalance(String userId, int newBalance);
   Future<String> createTransaction(TransactionModel transaction);
+  Future<bool> attachCreditsToCard(String userId, int amount);
 }
 
 class CreditsRemoteDataSourceImpl implements CreditsRemoteDataSource {
@@ -121,9 +122,9 @@ class CreditsRemoteDataSourceImpl implements CreditsRemoteDataSource {
           userId: userId,
           amount: -amount, // Negative for spending
           createdAt: DateTime.now(),
-          type: 'purchase',
+          type: 'card_attachment',
           status: 'completed',
-          description: 'Card purchase',
+          description: 'Attached to card',
         );
 
         firestoreTransaction.set(transactionDoc, transactionModel.toMap());
@@ -482,6 +483,94 @@ class CreditsRemoteDataSourceImpl implements CreditsRemoteDataSource {
       AppLogger.logError("Failed to create transaction: $e",
           tag: "Credit Data Source");
       throw Exception('Failed to create transaction: $e');
+    }
+  }
+
+  @override
+  Future<bool> attachCreditsToCard(String userId, int amount) async {
+    try {
+      AppLogger.log("Attaching $amount credits to card for user: $userId",
+          tag: "Credit Data Source");
+
+      if (amount <= 0) {
+        AppLogger.logError("Invalid credit amount for attachment: $amount",
+            tag: "Credit Data Source");
+        throw Exception('Invalid credit amount');
+      }
+
+      await firestore.runTransaction((firestoreTransaction) async {
+        // Get current balance from user document
+        final userDoc = firestore.collection('users').doc(userId);
+        final userSnapshot = await firestoreTransaction.get(userDoc);
+
+        int currentBalance = 0;
+        if (userSnapshot.exists) {
+          final data = userSnapshot.data() as Map<String, dynamic>?;
+          currentBalance = data?['creditBalance'] ?? 0;
+          AppLogger.log("Current balance: $currentBalance for user: $userId",
+              tag: "Credit Data Source");
+        } else {
+          AppLogger.logWarning("User document not found: $userId",
+              tag: "Credit Data Source");
+        }
+
+        if (currentBalance < amount) {
+          AppLogger.logError(
+              "Insufficient credits - Current: $currentBalance, Required: $amount",
+              tag: "Credit Data Source");
+          throw Exception('Insufficient credits');
+        }
+
+        // Calculate new balance
+        final newBalance = currentBalance - amount;
+        AppLogger.log("Updating balance from $currentBalance to $newBalance",
+            tag: "Credit Data Source");
+
+        // Update balance in user document
+        firestoreTransaction.update(userDoc, {
+          'creditBalance': newBalance,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+
+        // Create transaction record
+        final transactionDoc = firestore
+            .collection('users')
+            .doc(userId)
+            .collection('transactions')
+            .doc();
+
+        final transactionModel = TransactionModel(
+          id: transactionDoc.id,
+          userId: userId,
+          amount: -amount, // Negative for spending/attaching
+          createdAt: DateTime.now(),
+          type: 'card_attachment',
+          status: 'completed',
+          description: 'Attached to card',
+        );
+
+        firestoreTransaction.set(transactionDoc, transactionModel.toMap());
+        AppLogger.log(
+            "Transaction record created with ID: ${transactionDoc.id}",
+            tag: "Credit Data Source");
+      });
+
+      AppLogger.logSuccess(
+          "Credits attached to card successfully - User: $userId, Amount: $amount",
+          tag: "Credit Data Source");
+      return true;
+    } on FirebaseException catch (e) {
+      AppLogger.logError(
+          "Firebase error attaching credits to card: ${e.message}",
+          tag: "Credit Data Source");
+      throw Exception('Failed to attach credits to card: ${e.message}');
+    } catch (e) {
+      AppLogger.logError("Error attaching credits to card: $e",
+          tag: "Credit Data Source");
+      if (e.toString().contains('Insufficient credits')) {
+        rethrow;
+      }
+      throw Exception('Failed to attach credits to card: $e');
     }
   }
 }

@@ -8,4 +8,5 @@ abstract class CreditsRepository {
   Future<void> purchaseCredits(String userId, int amount);
   Future<void> sendCredits(String? toEmail, int amount, String? fromEmail);
   Future<void> sendCreditsById(String fromUserId, String toUserId, int amount);
+  Future<bool> attachCreditsToCard(String userId, int amount);
 }

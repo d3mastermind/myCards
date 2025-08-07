@@ -4,7 +4,6 @@ import 'package:mycards/di/service_locator.dart';
 import 'package:mycards/features/credits/domain/credits_repository.dart';
 import 'package:mycards/features/credits/domain/transaction_entiity.dart';
 import 'package:mycards/features/credits/data/datasources/credits_remote_datasource.dart';
-import 'package:mycards/features/credits/data/models/transaction_model.dart';
 
 class CreditsRepositoryImpl implements CreditsRepository {
   final CreditsRemoteDataSource _remoteDataSource;
@@ -75,6 +74,19 @@ class CreditsRepositoryImpl implements CreditsRepository {
       await _remoteDataSource.sendCredits(fromUserId, toUserId, amount);
     } catch (e) {
       throw Exception('Failed to send credits: $e');
+    }
+  }
+
+  @override
+  Future<bool> attachCreditsToCard(String userId, int amount) async {
+    try {
+      AppLogger.log("Attaching $amount credits to card for user $userId",
+          tag: "Credit Repository");
+      return await _remoteDataSource.attachCreditsToCard(userId, amount);
+    } catch (e) {
+      AppLogger.logError("Failed to attach credits to card: $e",
+          tag: "Credit Repository");
+      throw Exception('Failed to attach credits to card: $e');
     }
   }
 }

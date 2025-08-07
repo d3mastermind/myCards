@@ -12,6 +12,8 @@ import 'package:mycards/core/utils/logger.dart';
 import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
 import 'package:flutter/services.dart';
 import 'package:mycards/screens/bottom_navbar_controller.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ShareCardView extends ConsumerStatefulWidget {
   const ShareCardView({
@@ -32,7 +34,6 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
   String phoneNumber = "";
   bool _isSharing = false;
   String? _shareLink;
-  String? _error;
   bool _copied = false;
 
   @override
@@ -45,7 +46,6 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
     try {
       setState(() {
         _isSharing = true;
-        _error = null;
       });
 
       final user = AppUserService.instance.currentUser;
@@ -89,9 +89,14 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
     } catch (e) {
       AppLogger.logError('Error creating share link: $e', tag: 'ShareCardView');
       setState(() {
-        _error = e.toString();
         _isSharing = false;
       });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error creating share link: $e")),
+        );
+      }
     }
   }
 
@@ -113,25 +118,47 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
         throw Exception('No user available');
       }
 
-      final cardRepository = ref.read(cardRepositoryProvider);
-
-      // Add card to receivedCards for the recipient
-      await cardRepository.addToReceivedCards(
-        widget.cardData.card!.id,
-        emailController.text,
-      );
-
-      // Share via email (in real app, you'd integrate with email service)
+      // Update the sharedCards collection with recipient email
       if (_shareLink != null) {
-        await Share.share(
-          'Check out this amazing card I made for you!\n\nView your card here: $_shareLink\n\nYou also received ${widget.cardData.creditsAttached} free credits!',
-          subject: 'Digital Card from ${widget.cardData.fromName}',
-        );
+        final shareLinkId =
+            _shareLink!.split('id=')[1]; // Extract share link ID from URL
+
+        await _updateSharedCardRecipient(
+            shareLinkId, emailController.text, null);
+
+        AppLogger.log(
+            'Updated shared card with recipient email: ${emailController.text}',
+            tag: 'ShareCardView');
+
+        // Open email app with pre-filled content
+        final emailSubject = Uri.encodeComponent(
+            'Digital Card from ${widget.cardData.fromName ?? "Your Friend"}');
+        final emailBody = Uri.encodeComponent('Hi there!\n\n'
+            'I made a special greeting card for you! Click the link below to view it:\n\n'
+            '$_shareLink\n\n'
+            'Hope you enjoy it!\n\n'
+            'Best regards,\n'
+            '${widget.cardData.fromName ?? "Your Friend"}');
+
+        final emailUrl =
+            'mailto:${emailController.text}?subject=$emailSubject&body=$emailBody';
+
+        // Try to open email app
+        final Uri emailUri = Uri.parse(emailUrl);
+        if (await canLaunchUrl(emailUri)) {
+          await launchUrl(emailUri);
+        } else {
+          // Fallback to share dialog
+          await Share.share(
+            'Hi there!\n\nI made a special greeting card for you! View it here: $_shareLink\n\nBest regards \n${widget.cardData.fromName ?? "Your Friend"}',
+            subject: 'Digital Card from ${widget.cardData.fromName}',
+          );
+        }
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Card shared successfully via email!")),
+          const SnackBar(content: Text("Opening email app...")),
         );
       }
     } catch (e) {
@@ -166,24 +193,36 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
         throw Exception('No user available');
       }
 
-      final cardRepository = ref.read(cardRepositoryProvider);
-
-      // Add card to receivedCards for the recipient
-      await cardRepository.addToReceivedCards(
-        widget.cardData.card!.id,
-        phoneNumber,
-      );
-
-      // Share via SMS (in real app, you'd integrate with SMS service)
+      // Update the sharedCards collection with recipient phone
       if (_shareLink != null) {
-        await Share.share(
-          'Check out this amazing card I made for you!\n\nView your card here: $_shareLink\n\nYou also received ${widget.cardData.creditsAttached} free credits!',
-        );
+        final shareLinkId =
+            _shareLink!.split('id=')[1]; // Extract share link ID from URL
+
+        await _updateSharedCardRecipient(shareLinkId, null, phoneNumber);
+
+        AppLogger.log('Updated shared card with recipient phone: $phoneNumber',
+            tag: 'ShareCardView');
+
+        // Create SMS message content
+        final smsMessage = 'Hi! I made a special greeting card for you! '
+            'View it here: $_shareLink';
+
+        // Try to open messaging app with pre-filled content
+        final smsUrl =
+            'sms:$phoneNumber?body=${Uri.encodeComponent(smsMessage)}';
+        final Uri smsUri = Uri.parse(smsUrl);
+
+        if (await canLaunchUrl(smsUri)) {
+          await launchUrl(smsUri);
+        } else {
+          // Fallback to share dialog
+          await Share.share(smsMessage);
+        }
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Card shared successfully via phone!")),
+          const SnackBar(content: Text("Opening messaging app...")),
         );
       }
     } catch (e) {
@@ -204,7 +243,7 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
     try {
       if (_shareLink != null) {
         await Share.share(
-          'Check out this amazing card I made for you!\n\nView your card here: $_shareLink\n\nYou also received ${widget.cardData.creditsAttached} free credits!',
+          'Check out this amazing card I made for you!\n\nView your card here: $_shareLink',
           subject: 'Digital Card from ${widget.cardData.fromName}',
           sharePositionOrigin:
               Rect.fromCircle(center: Offset(0, 0), radius: 10),
@@ -224,6 +263,38 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
     }
   }
 
+  /// Update recipient details in sharedCards collection
+  Future<void> _updateSharedCardRecipient(
+      String shareLinkId, String? email, String? phone) async {
+    try {
+      final updates = <String, dynamic>{};
+
+      if (email != null) {
+        updates['receiverEmail'] = email;
+        updates['receiverId'] = email; // Use email as receiver ID for now
+      }
+
+      if (phone != null) {
+        updates['receiverPhone'] = phone;
+        updates['receiverId'] = phone; // Use phone as receiver ID for now
+      }
+
+      updates['updatedAt'] = FieldValue.serverTimestamp();
+
+      await FirebaseFirestore.instance
+          .collection('sharedCards')
+          .doc(shareLinkId)
+          .update(updates);
+
+      AppLogger.log('Updated shared card recipient details: $updates',
+          tag: 'ShareCardView');
+    } catch (e) {
+      AppLogger.logError('Error updating shared card recipient: $e',
+          tag: 'ShareCardView');
+      throw Exception('Failed to update recipient details: $e');
+    }
+  }
+
   void _goToHomeAndClearStack() {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const ScreenController()),
@@ -234,7 +305,7 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
           _goToHomeAndClearStack();
@@ -480,20 +551,14 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
                             ),
                             const SizedBox(height: 12),
                             Center(
-                              child: Ink(
-                                decoration: const ShapeDecoration(
-                                  shape: CircleBorder(),
-                                  color: Color(0xFFFF7043),
+                              child: IconButton(
+                                onPressed: _shareViaSocialMedia,
+                                icon: const Icon(
+                                  Icons.share_outlined,
+                                  color: Colors.orange,
+                                  size: 36,
                                 ),
-                                child: IconButton(
-                                  onPressed: _shareViaSocialMedia,
-                                  icon: const Icon(
-                                    Icons.share_outlined,
-                                    color: Colors.white,
-                                    size: 36,
-                                  ),
-                                  splashRadius: 28,
-                                ),
+                                splashRadius: 28,
                               ),
                             ),
                             if (_shareLink != null) ...[

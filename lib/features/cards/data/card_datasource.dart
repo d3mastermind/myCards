@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toastification/toastification.dart';
 import 'package:mycards/features/cards/domain/card_entity.dart';
 import 'package:mycards/core/utils/logger.dart';
+import 'dart:math';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 abstract class CardDatasource {
   Future<void> createCard(CardEntity card, String userId);
@@ -352,8 +355,8 @@ class CardDatasourceImpl implements CardDatasource {
   Future<String> createShareLink(
       String cardId, CardEntity card, String userId) async {
     try {
-      // Generate a short unique ID for the share link
-      String shareLinkId = _generateShareLinkId(userId);
+      // Generate a cryptographically strong unique ID for the share link
+      String shareLinkId = await _generateShareLinkId(userId);
 
       // First, get the latest card data from purchasedCards to ensure we have all the updated information
       DocumentSnapshot purchasedCardDoc = await _firestore
@@ -560,15 +563,37 @@ class CardDatasourceImpl implements CardDatasource {
     }
   }
 
-  String _generateShareLinkId(String userId) {
-    // Generate a 6-character alphanumeric ID
-    final chars = '${userId}ABCDEFGHIJKLMNOPQRSTUVWXYZ012345678911';
-    final random = DateTime.now().millisecondsSinceEpoch;
-    String result = '';
-    for (int i = 0; i < 6; i++) {
-      result += chars[random % chars.length];
-    }
-    return result;
+  /// Generate a cryptographically strong unique share link ID
+  Future<String> _generateShareLinkId(String userId) async {
+    final String uniqueId = _createUniqueId(userId);
+
+    return uniqueId;
+  }
+
+  /// Create a unique ID using multiple sources of entropy
+  String _createUniqueId(String userId) {
+    final random = Random.secure();
+    final timestamp = DateTime.now().microsecondsSinceEpoch;
+    final randomBytes = List<int>.generate(16, (_) => random.nextInt(256));
+
+    // Combine userId, timestamp, and random bytes
+    final combined = '$userId$timestamp${randomBytes.join()}';
+
+    // Create SHA-256 hash
+    final bytes = utf8.encode(combined);
+    final digest = sha256.convert(bytes);
+
+    // Take first 12 characters of hex and make it URL-safe
+    final hexString = digest.toString();
+    final urlSafeId = hexString.substring(0, 12).toUpperCase();
+
+    // Add a random suffix for extra uniqueness
+    final suffixChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final suffix =
+        List.generate(4, (_) => suffixChars[random.nextInt(suffixChars.length)])
+            .join();
+
+    return '$urlSafeId$suffix';
   }
 }
 
