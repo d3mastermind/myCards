@@ -10,6 +10,8 @@ import 'package:mycards/features/cards/data/card_repository_impl.dart';
 import 'package:mycards/features/app_user/app_user_provider.dart';
 import 'package:mycards/core/utils/logger.dart';
 import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
+import 'package:flutter/services.dart';
+import 'package:mycards/screens/bottom_navbar_controller.dart';
 
 class ShareCardView extends ConsumerStatefulWidget {
   const ShareCardView({
@@ -31,6 +33,7 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
   bool _isSharing = false;
   String? _shareLink;
   String? _error;
+  bool _copied = false;
 
   @override
   void initState() {
@@ -210,215 +213,391 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
     }
   }
 
+  void _goToHomeAndClearStack() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const ScreenController()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          _goToHomeAndClearStack();
+        }
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: Stack(
+          children: [
+            SingleChildScrollView(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Lottie.asset("assets/animations/share.json",
-                      repeat: true, height: 200),
-                  const Text(
-                    "Share the joy!",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Send this card to ${widget.cardData.toName ?? 'the recipient'} via email or phone number.\nThe recipient will also receive ${widget.cardData.creditsAttached} free credits from us to help you celebrate - Courtesy of Our Team",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black54,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                  // Gradient Header with Icon
                   Container(
-                    decoration: BoxDecoration(
-                        color: Colors.grey.withAlpha(60),
-                        borderRadius: BorderRadius.circular(20)),
-                    child: TextField(
-                      controller: emailController,
-                      decoration: InputDecoration(
-                        fillColor: Colors.white,
-                        focusColor: Colors.white,
-                        labelText: "Email",
-                        hintText: "Enter recipient's email",
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide.none),
-                        prefixIcon: const Icon(Icons.email),
+                    width: double.infinity,
+                    padding: const EdgeInsets.only(top: 48, bottom: 24),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(32),
+                        bottomRight: Radius.circular(32),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Center(child: Text("OR")),
-                  const SizedBox(height: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.grey.withAlpha(60),
-                        borderRadius: BorderRadius.circular(20)),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: InternationalPhoneNumberInput(
-                        initialValue: initialPhoneNumber,
-                        inputDecoration: const InputDecoration(
-                          contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 15),
-                          hintText: "Phone number",
-                          border: InputBorder.none,
-                        ),
-                        selectorConfig: const SelectorConfig(
-                          selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
-                        ),
-                        onInputChanged: (PhoneNumber number) {
-                          setState(() {
-                            phoneNumber = number.phoneNumber!;
-                          });
-                          log(phoneNumber);
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 200,
-                        child: ElevatedButton(
-                          onPressed: _isSharing
-                              ? null
-                              : () {
-                                  if (emailController.text.isNotEmpty) {
-                                    _shareViaEmail();
-                                  } else if (phoneNumber.isNotEmpty) {
-                                    _shareViaPhone();
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            "Please enter an email or phone number."),
-                                      ),
-                                    );
-                                  }
-                                },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                    child: Column(
+                      children: [
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 8, right: 8),
+                            child: IconButton(
+                              icon: const Icon(Icons.close,
+                                  color: Colors.white, size: 28),
+                              onPressed: _goToHomeAndClearStack,
+                              tooltip: 'Close',
                             ),
                           ),
-                          child: _isSharing
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularLoadingWidget(
-                                    colors: [
-                                      Colors.white,
-                                      Colors.white70,
-                                      Colors.white54,
-                                      Colors.white38
-                                    ],
+                        ),
+                        Lottie.asset(
+                          "assets/animations/share.json",
+                          repeat: true,
+                          height: 120,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Share the joy!",
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Send this card to ${widget.cardData.toName ?? 'the recipient'} via email or phone number.",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.85),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.orange.withOpacity(0.08),
+                            blurRadius: 16,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Section: Share via Email
+                            const Text(
+                              "Share via Email",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: emailController,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                labelText: "Email",
+                                hintText: "Enter recipient's email",
+                                prefixIcon: const Icon(Icons.email),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide:
+                                      BorderSide(color: Colors.orangeAccent),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(
+                                      color: Colors.orange, width: 2),
+                                ),
+                              ),
+                              keyboardType: TextInputType.emailAddress,
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                    child:
+                                        Divider(color: Colors.grey.shade300)),
+                                const Padding(
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: Text("OR",
+                                      style: TextStyle(color: Colors.black54)),
+                                ),
+                                Expanded(
+                                    child:
+                                        Divider(color: Colors.grey.shade300)),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            // Section: Share via Phone
+                            const Text(
+                              "Share via Phone",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                    color:
+                                        Colors.orangeAccent.withOpacity(0.3)),
+                              ),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                child: InternationalPhoneNumberInput(
+                                  initialValue: initialPhoneNumber,
+                                  inputDecoration: const InputDecoration(
+                                    contentPadding:
+                                        EdgeInsets.fromLTRB(0, 0, 0, 15),
+                                    hintText: "Phone number",
+                                    border: InputBorder.none,
                                   ),
-                                )
-                              : const Text(
+                                  selectorConfig: const SelectorConfig(
+                                    selectorType:
+                                        PhoneInputSelectorType.BOTTOM_SHEET,
+                                  ),
+                                  onInputChanged: (PhoneNumber number) {
+                                    setState(() {
+                                      phoneNumber = number.phoneNumber!;
+                                    });
+                                    log(phoneNumber);
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            // Share Card Button
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: _isSharing
+                                    ? null
+                                    : () {
+                                        if (emailController.text.isNotEmpty) {
+                                          _shareViaEmail();
+                                        } else if (phoneNumber.isNotEmpty) {
+                                          _shareViaPhone();
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  "Please enter an email or phone number."),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFF5722),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 2,
+                                ),
+                                icon: _isSharing
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularLoadingWidget(
+                                          colors: [
+                                            Colors.white,
+                                            Colors.white70,
+                                            Colors.white54,
+                                            Colors.white38
+                                          ],
+                                        ),
+                                      )
+                                    : const Icon(Icons.send,
+                                        color: Colors.white),
+                                label: const Text(
                                   "Share Card",
                                   style: TextStyle(
                                       fontSize: 18, color: Colors.white),
                                 ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            // Section: Share via Social Apps
+                            const Text(
+                              "Or share via other social apps",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            Center(
+                              child: Ink(
+                                decoration: const ShapeDecoration(
+                                  shape: CircleBorder(),
+                                  color: Color(0xFFFF7043),
+                                ),
+                                child: IconButton(
+                                  onPressed: _shareViaSocialMedia,
+                                  icon: const Icon(
+                                    Icons.share_outlined,
+                                    color: Colors.white,
+                                    size: 36,
+                                  ),
+                                  splashRadius: 28,
+                                ),
+                              ),
+                            ),
+                            if (_shareLink != null) ...[
+                              const SizedBox(height: 24),
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade50,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border:
+                                      Border.all(color: Colors.green.shade200),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.green.withOpacity(0.08),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.check_circle,
+                                            color: Colors.green, size: 22),
+                                        const SizedBox(width: 8),
+                                        const Text(
+                                          "Share Link Generated!",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: SelectableText(
+                                            _shareLink!,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.green,
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            _copied ? Icons.check : Icons.copy,
+                                            color: _copied
+                                                ? Colors.green
+                                                : Colors.grey,
+                                          ),
+                                          tooltip: _copied ? 'Copied!' : 'Copy',
+                                          onPressed: () async {
+                                            await Clipboard.setData(
+                                                ClipboardData(
+                                                    text: _shareLink!));
+                                            setState(() {
+                                              _copied = true;
+                                            });
+                                            Future.delayed(
+                                                const Duration(seconds: 2), () {
+                                              if (mounted) {
+                                                setState(() {
+                                                  _copied = false;
+                                                });
+                                              }
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "Or share via other social apps",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black54,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  IconButton(
-                    onPressed: _shareViaSocialMedia,
-                    icon: const Icon(
-                      Icons.share_outlined,
-                      color: Colors.redAccent,
-                      size: 50,
-                    ),
-                  ),
-                  if (_shareLink != null) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.green.shade200),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            "Share Link Generated!",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          SelectableText(
-                            _shareLink!,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.green,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
-          ),
-          if (_isSharing && _shareLink == null)
-            Positioned.fill(
-              child: Container(
-                color: Colors.black54,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularLoadingWidget(
-                        colors: [
-                          Colors.white,
-                          Colors.white70,
-                          Colors.white54,
-                          Colors.white38
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        "Creating share link...",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
+            if (_isSharing && _shareLink == null)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black54,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Lottie.asset(
+                          "assets/animations/shareletter.json",
+                          height: 120,
+                          repeat: true,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "Creating share link...",
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

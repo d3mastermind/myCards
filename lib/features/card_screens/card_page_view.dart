@@ -230,23 +230,88 @@ Future<void> showSaveCardDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Confirm Save'),
-        content: Text(
-          "Are you sure you want to save this card? You won't be able to edit it after sharing.",
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
+        titlePadding:
+            const EdgeInsets.only(top: 24, left: 24, right: 24, bottom: 0),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        actionsPadding:
+            const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 0),
+        title: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.orange.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.save_alt,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Confirm Save',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        content: const Text(
+          "Are you sure you want to save this card? You won't be able to edit it after sharing.",
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.black87,
+            height: 1.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.spaceBetween,
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(context).pop(); // Close the dialog
             },
-            child: Text('Cancel'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey.shade700,
+              textStyle: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop(); // Close the dialog
               onSave(); // Trigger the save action
             },
-            child: Text('Okay, Save'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF5722),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              textStyle: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            child: const Text('Okay, Save'),
           ),
         ],
       );

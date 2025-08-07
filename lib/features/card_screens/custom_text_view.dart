@@ -70,6 +70,10 @@ class _CustomTextViewState extends State<CustomTextView> {
                 imageBuilder: (context, imageProvider) => Container(
                   decoration: BoxDecoration(
                     image: DecorationImage(
+                      colorFilter: ColorFilter.mode(
+                        Colors.grey,
+                        BlendMode.saturation,
+                      ),
                       image: imageProvider,
                       fit: BoxFit.cover,
                     ),
@@ -100,69 +104,65 @@ class _CustomTextViewState extends State<CustomTextView> {
               ),
             ),
 
-          // Foreground Content
+          // Foreground Content - Natural Handwritten Style
           Positioned.fill(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(32.0),
               child: Stack(
                 children: [
-                  // To Message at the Top-Left
+                  // To Message at the Top-Left - Handwritten style
                   Align(
                     alignment: Alignment.topLeft,
                     child: GestureDetector(
                       onTap: () {
                         log("To message tapped");
                       },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          widget.toMessage,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
+                      child: Text(
+                        widget.toMessage,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                          height: 1.3,
+                          shadows: [
+                            Shadow(
+                              offset: const Offset(1, 1),
+                              blurRadius: 2,
+                              color: Colors.black.withOpacity(0.1),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
 
-                  // From Message at the Bottom-Right
+                  // From Message at the Bottom-Right - Handwritten style
                   Align(
                     alignment: Alignment.bottomRight,
                     child: GestureDetector(
                       onTap: () {
                         log("From message tapped");
                       },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          widget.fromMeassage,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
+                      child: Text(
+                        widget.fromMeassage,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                          height: 1.3,
+                          shadows: [
+                            Shadow(
+                              offset: const Offset(1, 1),
+                              blurRadius: 2,
+                              color: Colors.black.withOpacity(0.1),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
 
-                  // Custom Message at the Center
+                  // Main Custom Message at the Center - Handwritten style
                   Align(
                     alignment: Alignment.center,
                     child: GestureDetector(
@@ -170,28 +170,31 @@ class _CustomTextViewState extends State<CustomTextView> {
                         log("Custom message tapped");
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                        constraints: const BoxConstraints(
+                          maxWidth: 300,
                         ),
                         child: Text(
                           widget.customMessage,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 18,
+                          style: TextStyle(
+                            fontSize: 24,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black,
+                            color: Colors.black87,
+                            fontFamily: 'Cursive',
+                            height: 1.4,
+                            letterSpacing: 0.3,
+                            shadows: [
+                              Shadow(
+                                offset: const Offset(1, 1),
+                                blurRadius: 3,
+                                color: Colors.black.withOpacity(0.15),
+                              ),
+                              Shadow(
+                                offset: const Offset(0, 1),
+                                blurRadius: 1,
+                                color: Colors.white.withOpacity(0.8),
+                              ),
+                            ],
                           ),
                         ),
                       ),

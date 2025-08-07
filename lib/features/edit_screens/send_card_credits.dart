@@ -164,7 +164,7 @@ class _SendCardCreditsScreenState extends ConsumerState<SendCardCreditsScreen> {
           children: [
             // Header Section
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFFFFF3E0), Color(0xFFFFE0B2)],
@@ -225,7 +225,7 @@ class _SendCardCreditsScreenState extends ConsumerState<SendCardCreditsScreen> {
             const SizedBox(height: 16),
             // Balance Card
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
@@ -368,7 +368,7 @@ class _SendCardCreditsScreenState extends ConsumerState<SendCardCreditsScreen> {
             // Credits Summary Card
             if (_selectedCredits >= 10)
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFFFFF8E1), Color(0xFFFFECB3)],
