@@ -59,12 +59,22 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
         throw Exception('No card ID available');
       }
 
-      // Create share link
+      AppLogger.log(
+          'Creating share link for card ID: ${widget.cardData.card!.id}',
+          tag: 'ShareCardView');
+      AppLogger.log(
+          'Card data before sharing - toName: ${widget.cardData.toName}, fromName: ${widget.cardData.fromName}, greeting: ${widget.cardData.greetingMessage}',
+          tag: 'ShareCardView');
+
+      // Create share link - the method now fetches latest data from purchasedCards internally
       final shareLink = await cardRepository.createShareLink(
         widget.cardData.card!.id,
-        widget.cardData.card!,
+        widget.cardData
+            .card!, // This parameter is now less important since we fetch from DB
         user.userId,
       );
+
+      // Refresh the cards list to reflect the updated share status
       await ref
           .read(myCardsScreenViewModelProvider.notifier)
           .refreshPurchasedCards();
@@ -74,7 +84,8 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
         _isSharing = false;
       });
 
-      AppLogger.log('Share link created: $shareLink', tag: 'ShareCardView');
+      AppLogger.log('Share link created successfully: $shareLink',
+          tag: 'ShareCardView');
     } catch (e) {
       AppLogger.logError('Error creating share link: $e', tag: 'ShareCardView');
       setState(() {
@@ -239,7 +250,7 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
                   // Gradient Header with Icon
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.only(top: 48, bottom: 24),
+                    padding: const EdgeInsets.only(top: 32, bottom: 16),
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
@@ -308,7 +319,7 @@ class _ShareCardViewState extends ConsumerState<ShareCardView> {
                         ],
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(20.0),
+                        padding: const EdgeInsets.all(16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [

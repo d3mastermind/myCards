@@ -44,10 +44,13 @@ class _CardPageViewState extends ConsumerState<CardPageView> {
   }
 
   void goToShareScreen() {
+    // Get the latest card data from the provider after saving
+    final latestCardData = ref.read(cardEditingProvider);
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ShareCardView(cardData: widget.cardData),
+        builder: (context) => ShareCardView(cardData: latestCardData),
       ),
     );
   }

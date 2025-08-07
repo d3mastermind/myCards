@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toastification/toastification.dart';
 import 'package:mycards/features/cards/domain/card_entity.dart';
+import 'package:mycards/core/utils/logger.dart';
 
 abstract class CardDatasource {
   Future<void> createCard(CardEntity card, String userId);
@@ -354,6 +355,24 @@ class CardDatasourceImpl implements CardDatasource {
       // Generate a short unique ID for the share link
       String shareLinkId = _generateShareLinkId(userId);
 
+      // First, get the latest card data from purchasedCards to ensure we have all the updated information
+      DocumentSnapshot purchasedCardDoc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('purchasedCards')
+          .doc(cardId)
+          .get();
+
+      if (!purchasedCardDoc.exists) {
+        throw Exception('Card not found in user\'s purchased cards');
+      }
+
+      Map<String, dynamic> latestCardData =
+          purchasedCardDoc.data() as Map<String, dynamic>;
+
+      AppLogger.log('Latest card data from DB: $latestCardData',
+          tag: 'CardDatasource');
+
       // Update the card in user's purchasedCards with the shareLinkId and isShared = true
       await _firestore
           .collection('users')
@@ -366,29 +385,33 @@ class CardDatasourceImpl implements CardDatasource {
         'sharedAt': FieldValue.serverTimestamp(),
       });
 
-      // Create a document in sharedCards collection with complete card data
+      // Create a document in sharedCards collection with the LATEST complete card data from DB
       await _firestore.collection('sharedCards').doc(shareLinkId).set({
         'cardId': cardId,
-        'templateId': card.templateId,
-        'senderId': card.senderId,
-        'receiverId': card.receiverId,
-        'receiverEmail': card.receiverEmail,
-        'receiverPhone': card.receiverPhone,
-        'toName': card.toName,
-        'fromName': card.fromName,
-        'greetingMessage': card.greetingMessage,
-        'customImageUrl': card.customImageUrl,
-        'voiceNoteUrl': card.voiceNoteUrl,
-        'createdAt': card.createdAt,
-        'isOpened': card.isOpened,
-        'creditsAttached': card.creditsAttached,
+        'templateId': latestCardData['templateId'],
+        'senderId': latestCardData['senderId'],
+        'receiverId': latestCardData['receiverId'],
+        'receiverEmail': latestCardData['receiverEmail'],
+        'receiverPhone': latestCardData['receiverPhone'],
+        'toName': latestCardData['toName'],
+        'fromName': latestCardData['fromName'],
+        'greetingMessage': latestCardData['greetingMessage'],
+        'customImageUrl': latestCardData['customImageUrl'],
+        'voiceNoteUrl': latestCardData['voiceNoteUrl'],
+        'createdAt': latestCardData['createdAt'],
+        'isOpened': latestCardData['isOpened'] ?? false,
+        'creditsAttached': latestCardData['creditsAttached'] ?? 0,
         'shareLinkId': shareLinkId,
         'isActive': true,
         'sharedAt': FieldValue.serverTimestamp(),
-        'frontImageUrl': card.frontImageUrl,
+        'frontImageUrl': latestCardData['frontImageUrl'],
       });
 
-      return shareLinkId;
+      // Generate Firebase hosting URL that will redirect to app
+      final shareUrl = 'https://mycards-c7f33.web.app/card?id=$shareLinkId';
+      AppLogger.log('Generated share link: $shareUrl', tag: 'CardDatasource');
+
+      return shareUrl;
     } on FirebaseException catch (e) {
       // Show error toast
       toastification.show(

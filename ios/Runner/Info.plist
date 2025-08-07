@@ -20,6 +20,26 @@
 				<string>com.googleusercontent.apps.781667469773-dbvd7901bej2qamt0bqbku41n30olv3r</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>mycards.deeplink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mycards</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>mycards.universallink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>https</string>
+			</array>
+		</dict>
 	</array>
 	<!-- End of the Google Sign-in Section -->
     <key>NSMicrophoneUsageDescription</key>
@@ -67,5 +87,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:mycards-c7f33.web.app</string>
+		<string>applinks:mycards-c7f33.firebaseapp.com</string>
+	</array>
 </dict>
 </plist>

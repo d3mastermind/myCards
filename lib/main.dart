@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:loading_indicator/loading_indicator.dart';
@@ -16,6 +16,7 @@ import 'firebase_options.dart';
 import 'package:mycards/features/home/services/auth_service.dart';
 import 'package:mycards/features/app_user/app_user_provider.dart';
 import 'package:mycards/core/utils/logger.dart';
+import 'package:mycards/services/deep_link_service.dart';
 // import 'package:mycards/utils/populate_templates.dart'; // Uncomment to populate templates
 
 void main() async {
@@ -37,7 +38,7 @@ void main() async {
 
   // Initialize app user service singleton
   try {
-    final appUserService = AppUserService.instance;
+    AppUserService.instance;
     AppLogger.log('AppUserService singleton initialized in main', tag: 'Main');
   } catch (e) {
     AppLogger.logError('Error initializing AppUserService singleton: $e',
@@ -60,8 +61,23 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize deep link service early
+    DeepLinkService().initialize(_navigatorKey);
+    AppLogger.log('Deep link service initialized', tag: 'MyApp');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +87,7 @@ class MyApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp(
+          navigatorKey: _navigatorKey,
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             fontFamily: 'Roboto',
@@ -121,5 +138,11 @@ class MyApp extends StatelessWidget {
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    DeepLinkService().dispose();
+    super.dispose();
   }
 }

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyCards - View Shared Card</title>
+    <meta name="description" content="Open your shared MyCards greeting card">
+    
+    <!-- Open Graph for social media sharing -->
+    <meta property="og:title" content="MyCards - Shared Greeting Card">
+    <meta property="og:description" content="Someone shared a beautiful greeting card with you!">
+    <meta property="og:image" content="https://mycards-c7f33.web.app/og-image.png">
+    <meta property="og:type" content="website">
+    
+    <!-- Apple icons and meta -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #FF5722, #FF7043);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        p {
+            font-size: 16px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: white;
+            color: #FF5722;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" class="loading-state">
+            <div class="logo">💌</div>
+            <h1>Opening Your Card...</h1>
+            <div class="spinner"></div>
+            <p>Launching MyCards app...</p>
+        </div>
+        
+        <div id="fallback" class="fallback-state hidden">
+            <div class="logo">💌</div>
+            <h1>MyCards</h1>
+            <p>Someone shared a beautiful greeting card with you!</p>
+            
+            <a href="#" id="open-app-btn" class="btn">Open in MyCards App</a>
+            
+            <div style="margin-top: 30px;">
+                <p style="font-size: 14px; margin-bottom: 15px;">Don't have the app?</p>
+                <a href="https://play.google.com/store/apps/details?id=com.mind.mycards" target="_blank" class="btn btn-secondary">Download for Android</a>
+                <a href="https://apps.apple.com/app/mycards/idYOUR_APP_ID" target="_blank" class="btn btn-secondary">Download for iOS</a>
+            </div>
+        </div>
+        
+        <div id="error" class="error-state hidden">
+            <div class="logo">❌</div>
+            <h1>Invalid Link</h1>
+            <p>This card link appears to be invalid or has expired.</p>
+            <a href="https://mycards-c7f33.web.app" class="btn">Go to MyCards</a>
+        </div>
+    </div>
+
+    <script>
+        // Get card ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const cardId = urlParams.get('id');
+        
+        const loadingEl = document.getElementById('loading');
+        const fallbackEl = document.getElementById('fallback');
+        const errorEl = document.getElementById('error');
+        const openAppBtn = document.getElementById('open-app-btn');
+        
+        if (!cardId) {
+            // No card ID provided
+            showError();
+        } else {
+            // Set up the app link
+            const appLink = `mycards://card/view?id=${cardId}`;
+            openAppBtn.href = appLink;
+            
+            // Try to open the app immediately
+            tryOpenApp(appLink);
+        }
+        
+        function tryOpenApp(appLink) {
+            // Show loading state
+            loadingEl.classList.remove('hidden');
+            
+            // Try to open the app
+            window.location.href = appLink;
+            
+            // Fallback after 2 seconds
+            setTimeout(() => {
+                showFallback();
+            }, 2000);
+            
+            // Also try using a hidden iframe (sometimes works better)
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = appLink;
+            document.body.appendChild(iframe);
+            
+            // Clean up iframe after a short delay
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 1000);
+        }
+        
+        function showFallback() {
+            loadingEl.classList.add('hidden');
+            fallbackEl.classList.remove('hidden');
+        }
+        
+        function showError() {
+            loadingEl.classList.add('hidden');
+            errorEl.classList.remove('hidden');
+        }
+        
+        // Handle page visibility change (when user returns from app)
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                // User came back to browser, show fallback
+                setTimeout(showFallback, 500);
+            }
+        });
+        
+        // Handle focus events
+        window.addEventListener('blur', function() {
+            // App might have opened
+        });
+        
+        window.addEventListener('focus', function() {
+            // User came back, show fallback
+            setTimeout(showFallback, 500);
+        });
+    </script>
+</body>
+</html>
