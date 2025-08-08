@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
 import 'package:mycards/core/utils/logger.dart';
 import 'package:mycards/features/card_screens/shared_card_viewer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DeepLinkService {
   static final DeepLinkService _instance = DeepLinkService._internal();
@@ -65,6 +66,23 @@ class DeepLinkService {
     AppLogger.log('Processing deep link URI: ${uri.toString()}',
         tag: 'DeepLinkService');
 
+    // 1) Forward Firebase Auth internal handler/captcha links to external browser/app
+    final bool isFirebaseHost =
+        uri.host.endsWith('firebaseapp.com') || uri.host.endsWith('web.app');
+    final bool isFirebaseAuthHandler = uri.scheme == 'https' &&
+        isFirebaseHost &&
+        (uri.path.startsWith('/__/auth') ||
+            uri.queryParameters.containsKey('authType'));
+
+    if (isFirebaseAuthHandler) {
+      AppLogger.log(
+        'Forwarding Firebase Auth handler deep link externally: ${uri.toString()}',
+        tag: 'DeepLinkService',
+      );
+      _launchExternally(uri);
+      return; // Do not process inside app
+    }
+
     String? shareLinkId;
 
     // Handle custom scheme: mycards://card/view?id={shareLinkId}
@@ -92,9 +110,39 @@ class DeepLinkService {
           tag: 'DeepLinkService');
       _navigateToSharedCard(shareLinkId);
     } else {
-      AppLogger.logError('No card ID found in deep link: ${uri.toString()}',
+      // Only show an error if the link appears to target our card routes; otherwise forward externally
+      final bool isOurCardRoute = uri.scheme == 'mycards' ||
+          ((uri.host == 'mycards-c7f33.web.app' ||
+                  uri.host == 'mycards-c7f33.firebaseapp.com') &&
+              (uri.path == '/card' ||
+                  (uri.pathSegments.isNotEmpty &&
+                      uri.pathSegments.first == 'card')));
+
+      if (isOurCardRoute) {
+        AppLogger.logError('No card ID found in deep link: ${uri.toString()}',
+            tag: 'DeepLinkService');
+        _showErrorMessage('Invalid card link');
+      } else {
+        AppLogger.log(
+            'Forwarding unrelated deep link externally: ${uri.toString()}',
+            tag: 'DeepLinkService');
+        _launchExternally(uri);
+      }
+    }
+  }
+
+  Future<void> _launchExternally(Uri uri) async {
+    try {
+      final launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
+      if (!launched) {
+        AppLogger.logWarning(
+            'Could not launch externally, trying default: ${uri.toString()}',
+            tag: 'DeepLinkService');
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      AppLogger.logError('Failed to launch external link: $e',
           tag: 'DeepLinkService');
-      _showErrorMessage('Invalid card link');
     }
   }
 

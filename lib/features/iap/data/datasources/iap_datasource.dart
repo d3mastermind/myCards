@@ -41,7 +41,7 @@ class IAPDataSourceImpl implements IAPDataSource {
   // TEST MODE (true):  Uses mock products, simulates purchases
   // LIVE MODE (false): Uses real Google Play products and billing
   // ================================
-  static const bool _testMode = true; // ⚠️ CHANGE TO FALSE FOR PRODUCTION ⚠️
+  static const bool _testMode = false; // ⚠️ CHANGE TO FALSE FOR PRODUCTION ⚠️
 
   // Mock products for testing
   static const List<Map<String, dynamic>> _mockProducts = [

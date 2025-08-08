@@ -6,10 +6,10 @@ import 'package:mycards/features/auth/presentation/phone_signup/phone_signup_vm.
 import 'package:mycards/features/auth/presentation/email_signup/email_signup_view.dart';
 import 'package:mycards/features/auth/presentation/phone_login/phone_login_view.dart';
 import 'package:mycards/features/auth/presentation/verify_otp/otp_verification_view.dart';
-import 'package:mycards/main.dart';
 import 'dart:developer' as developer;
 import 'package:mycards/core/utils/logger.dart';
 import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
+import 'package:mycards/screens/bottom_navbar_controller.dart';
 
 class PhoneSignUpView extends ConsumerStatefulWidget {
   const PhoneSignUpView({super.key});
@@ -21,7 +21,7 @@ class PhoneSignUpView extends ConsumerStatefulWidget {
 class _PhoneSignUpViewState extends ConsumerState<PhoneSignUpView> {
   final _formKey = GlobalKey<FormState>();
   String phoneNumber = "";
-  PhoneNumber initialPhoneNumber = PhoneNumber(isoCode: 'LK');
+  PhoneNumber initialPhoneNumber = PhoneNumber(isoCode: 'US');
 
   @override
   void initState() {
@@ -70,6 +70,16 @@ class _PhoneSignUpViewState extends ConsumerState<PhoneSignUpView> {
           ),
         );
         // Clear success state after navigation
+        ref.read(phoneSignUpVMProvider.notifier).clearSuccess();
+      } else if (next.isGoogleSuccess) {
+        AppLogger.logSuccess(
+            'PhoneSignUpView: Google signup successful, navigating to home',
+            tag: 'PhoneSignUpView');
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const ScreenController()),
+          (route) => false,
+        );
         ref.read(phoneSignUpVMProvider.notifier).clearSuccess();
       }
     });

@@ -7,6 +7,7 @@ class EmailSignUpState {
   final bool isLoading;
   final bool isGoogleLoading;
   final bool isSuccess;
+  final bool isGoogleSuccess;
   final bool isError;
   final String errorMessage;
 
@@ -14,6 +15,7 @@ class EmailSignUpState {
     this.isLoading = false,
     this.isGoogleLoading = false,
     this.isSuccess = false,
+    this.isGoogleSuccess = false,
     this.isError = false,
     this.errorMessage = '',
   });
@@ -22,6 +24,7 @@ class EmailSignUpState {
     bool? isLoading,
     bool? isGoogleLoading,
     bool? isSuccess,
+    bool? isGoogleSuccess,
     bool? isError,
     String? errorMessage,
   }) {
@@ -29,6 +32,7 @@ class EmailSignUpState {
       isLoading: isLoading ?? this.isLoading,
       isGoogleLoading: isGoogleLoading ?? this.isGoogleLoading,
       isSuccess: isSuccess ?? this.isSuccess,
+      isGoogleSuccess: isGoogleSuccess ?? this.isGoogleSuccess,
       isError: isError ?? this.isError,
       errorMessage: errorMessage ?? this.errorMessage,
     );
@@ -66,10 +70,11 @@ class EmailSignUpVM extends StateNotifier<EmailSignUpState> {
     state =
         state.copyWith(isGoogleLoading: true, isError: false, errorMessage: '');
     try {
-      await authRepository.signUpWithGoogle();
-      AppLogger.logSuccess('EmailSignUpVM: Google signup successful',
+      // Reuse sign-in flow for Google to keep behavior identical
+      await authRepository.signInWithGoogle();
+      AppLogger.logSuccess('EmailSignUpVM: Google signup/sign-in successful',
           tag: 'EmailSignUpVM');
-      state = state.copyWith(isSuccess: true);
+      state = state.copyWith(isGoogleSuccess: true);
     } catch (e) {
       AppLogger.logError('EmailSignUpVM: Google signup failed: $e',
           tag: 'EmailSignUpVM');
@@ -85,8 +90,9 @@ class EmailSignUpVM extends StateNotifier<EmailSignUpState> {
   }
 
   void clearSuccess() {
-    AppLogger.log('EmailSignUpVM: Clearing success state', tag: 'EmailSignUpVM');
-    state = state.copyWith(isSuccess: false);
+    AppLogger.log('EmailSignUpVM: Clearing success state',
+        tag: 'EmailSignUpVM');
+    state = state.copyWith(isSuccess: false, isGoogleSuccess: false);
   }
 
   void resetState() {

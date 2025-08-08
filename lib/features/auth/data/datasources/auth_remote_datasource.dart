@@ -318,6 +318,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<void> sendEmailVerification() async {
     try {
       final User? user = _auth.currentUser;
+
       if (user != null) {
         await user.sendEmailVerification();
       } else {

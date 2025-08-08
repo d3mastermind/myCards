@@ -32,20 +32,22 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="mycards" />
             </intent-filter>
-            <!-- Web URL Intent Filter for Firebase hosting -->
+            <!-- Web URL Intent Filter for Firebase hosting (card routes only) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" 
-                      android:host="mycards-c7f33.web.app" />
+                <data android:scheme="https"
+                      android:host="mycards-c7f33.web.app"
+                      android:pathPrefix="/card" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" 
-                      android:host="mycards-c7f33.firebaseapp.com" />
+                <data android:scheme="https"
+                      android:host="mycards-c7f33.firebaseapp.com"
+                      android:pathPrefix="/card" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

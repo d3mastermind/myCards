@@ -5,12 +5,11 @@ import 'package:loading_indicator/loading_indicator.dart';
 import 'package:mycards/features/auth/presentation/verify_email/email_verify_view.dart';
 import 'package:mycards/features/auth/presentation/phone_login/phone_login_view.dart';
 import 'package:mycards/features/auth/presentation/phone_signup/phone_signup_view.dart';
-import 'package:mycards/main.dart';
-import 'package:mycards/features/home/services/auth_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycards/features/auth/presentation/email_signup/email_signup_vm.dart';
 import 'package:mycards/core/utils/logger.dart';
 import 'package:mycards/widgets/loading_indicators/circular_loading_widget.dart';
+import 'package:mycards/screens/bottom_navbar_controller.dart';
 
 class EmailSignUpView extends ConsumerStatefulWidget {
   const EmailSignUpView({super.key});
@@ -69,6 +68,16 @@ class _EmailSignUpViewState extends ConsumerState<EmailSignUpView> {
           ),
         );
         // Clear success state after navigation
+        ref.read(emailSignUpVMProvider.notifier).clearSuccess();
+      } else if (next.isGoogleSuccess) {
+        AppLogger.logSuccess(
+            'EmailSignUpView: Google signup successful, navigating to home',
+            tag: 'EmailSignUpView');
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const ScreenController()),
+          (route) => false,
+        );
         ref.read(emailSignUpVMProvider.notifier).clearSuccess();
       } else if (next.isError && next.errorMessage.isNotEmpty) {
         AppLogger.logError(

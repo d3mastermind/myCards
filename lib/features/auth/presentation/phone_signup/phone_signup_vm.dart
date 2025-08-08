@@ -8,6 +8,7 @@ class PhoneSignUpState {
   final bool isLoading;
   final bool isGoogleLoading;
   final bool isSuccess;
+  final bool isGoogleSuccess;
   final bool isError;
   final String errorMessage;
   final String? verificationId;
@@ -17,6 +18,7 @@ class PhoneSignUpState {
     this.isLoading = false,
     this.isGoogleLoading = false,
     this.isSuccess = false,
+    this.isGoogleSuccess = false,
     this.isError = false,
     this.errorMessage = '',
     this.verificationId,
@@ -27,6 +29,7 @@ class PhoneSignUpState {
     bool? isLoading,
     bool? isGoogleLoading,
     bool? isSuccess,
+    bool? isGoogleSuccess,
     bool? isError,
     String? errorMessage,
     String? verificationId,
@@ -36,6 +39,7 @@ class PhoneSignUpState {
       isLoading: isLoading ?? this.isLoading,
       isGoogleLoading: isGoogleLoading ?? this.isGoogleLoading,
       isSuccess: isSuccess ?? this.isSuccess,
+      isGoogleSuccess: isGoogleSuccess ?? this.isGoogleSuccess,
       isError: isError ?? this.isError,
       errorMessage: errorMessage ?? this.errorMessage,
       verificationId: verificationId ?? this.verificationId,
@@ -75,8 +79,8 @@ class PhoneSignUpVM extends StateNotifier<PhoneSignUpState> {
     state =
         state.copyWith(isGoogleLoading: true, isError: false, errorMessage: '');
     try {
-      await authRepository.signUpWithGoogle();
-      state = state.copyWith(isSuccess: true);
+      await authRepository.signInWithGoogle();
+      state = state.copyWith(isGoogleSuccess: true);
     } catch (e) {
       state = state.copyWith(isError: true, errorMessage: e.toString());
     } finally {
@@ -96,7 +100,10 @@ class PhoneSignUpVM extends StateNotifier<PhoneSignUpState> {
     AppLogger.log('PhoneSignUpVM: Clearing success state',
         tag: 'PhoneSignUpVM');
     state = state.copyWith(
-        isSuccess: false, verificationId: null, phoneNumber: null);
+        isSuccess: false,
+        isGoogleSuccess: false,
+        verificationId: null,
+        phoneNumber: null);
   }
 }
 
