@@ -81,6 +81,11 @@
             <action android:name="android.intent.action.DIAL" />
             <data android:scheme="tel" />
         </intent>
+        <!-- Ensure Google Play Store is visible to the app for BillingClient on Android 11+ -->
+        <package android:name="com.android.vending" />
+        <intent>
+            <action android:name="com.android.vending.BILLING" />
+        </intent>
     </queries>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />

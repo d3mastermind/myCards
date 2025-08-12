@@ -142,7 +142,7 @@ class IAPDataSourceImpl implements IAPDataSource {
       // Add timeout to prevent hanging
       final ProductDetailsResponse response = await _inAppPurchase
           .queryProductDetails(productIds)
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 60));
 
       if (response.error != null) {
         print('❌ Product query error: ${response.error!.message}');
